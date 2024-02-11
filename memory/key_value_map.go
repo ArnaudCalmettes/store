@@ -5,7 +5,7 @@ import (
 	"maps"
 	"sync"
 
-	//!lint ignore ST10001 common definitions
+	//lint:ignore ST1001 common definitions
 	. "github.com/ArnaudCalmettes/store"
 )
 
@@ -72,7 +72,7 @@ func (k *keyValueMap) GetAll(ctx context.Context) (map[string]string, error) {
 	return items, nil
 }
 
-func (k *keyValueMap) UpdateOne(ctx context.Context, key string, update MapUpdateFunc) error {
+func (k *keyValueMap) UpdateOne(ctx context.Context, key string, update UpdateFunc[string]) error {
 	k.mtx.Lock()
 	defer k.mtx.Unlock()
 	var valuePtr *string
@@ -91,7 +91,7 @@ func (k *keyValueMap) UpdateOne(ctx context.Context, key string, update MapUpdat
 	return nil
 }
 
-func (k *keyValueMap) UpdateMany(ctx context.Context, keys []string, update MapUpdateFunc) error {
+func (k *keyValueMap) UpdateMany(ctx context.Context, keys []string, update UpdateFunc[string]) error {
 	k.mtx.Lock()
 	defer k.mtx.Unlock()
 

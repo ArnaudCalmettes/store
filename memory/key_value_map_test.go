@@ -10,7 +10,7 @@ import (
 )
 
 func TestMemoryKeyValueMap(t *testing.T) {
-	newKeyValueMap := func() store.KeyValueMap { return NewKeyValueMap() }
+	newKeyValueMap := func() store.BaseKeyValueMap { return NewKeyValueMap() }
 	TestKeyValueMap(t, newKeyValueMap)
 }
 

@@ -4,13 +4,13 @@ import (
 	"errors"
 	"testing"
 
-	//!lint ignore ST10001 common definitions
+	//lint:ignore ST1001 common definitions
 	. "github.com/ArnaudCalmettes/store"
 	"github.com/google/uuid"
 )
 
-func TestKeyValueMap(t *testing.T, newKeyValueMap func() KeyValueMap) {
-	type TestFunc func(*testing.T, func() KeyValueMap)
+func TestKeyValueMap(t *testing.T, newKeyValueMap func() BaseKeyValueMap) {
+	type TestFunc func(*testing.T, func() BaseKeyValueMap)
 	run := func(t *testing.T, name string, testFunc TestFunc) {
 		t.Run(name, func(t *testing.T) {
 			testFunc(t, newKeyValueMap)
@@ -25,7 +25,7 @@ func TestKeyValueMap(t *testing.T, newKeyValueMap func() KeyValueMap) {
 	run(t, "Delete", testKeyValueMapDelete)
 }
 
-func testKeyValueMapGetSetOne(t *testing.T, newKeyValueMap func() KeyValueMap) {
+func testKeyValueMapGetSetOne(t *testing.T, newKeyValueMap func() BaseKeyValueMap) {
 	store := newKeyValueMap()
 	ctx, cancel := NewTestContext()
 	defer cancel()
@@ -69,7 +69,7 @@ func testKeyValueMapGetSetOne(t *testing.T, newKeyValueMap func() KeyValueMap) {
 	})
 }
 
-func testKeyValueMapGetSetMany(t *testing.T, newKeyValueMap func() KeyValueMap) {
+func testKeyValueMapGetSetMany(t *testing.T, newKeyValueMap func() BaseKeyValueMap) {
 	store := newKeyValueMap()
 	ctx, cancel := NewTestContext()
 	defer cancel()
@@ -135,7 +135,7 @@ func testKeyValueMapGetSetMany(t *testing.T, newKeyValueMap func() KeyValueMap) 
 	})
 }
 
-func testKeyValueMapGetAll(t *testing.T, newKeyValueMap func() KeyValueMap) {
+func testKeyValueMapGetAll(t *testing.T, newKeyValueMap func() BaseKeyValueMap) {
 	store := newKeyValueMap()
 	ctx, cancel := NewTestContext()
 	defer cancel()
@@ -166,7 +166,7 @@ func testKeyValueMapGetAll(t *testing.T, newKeyValueMap func() KeyValueMap) {
 	})
 }
 
-func testKeyValueMapUpdateOne(t *testing.T, newKeyValueMap func() KeyValueMap) {
+func testKeyValueMapUpdateOne(t *testing.T, newKeyValueMap func() BaseKeyValueMap) {
 	store := newKeyValueMap()
 	ctx, cancel := NewTestContext()
 	defer cancel()
@@ -235,7 +235,7 @@ func testKeyValueMapUpdateOne(t *testing.T, newKeyValueMap func() KeyValueMap) {
 	})
 }
 
-func testKeyValueMapUpdateMany(t *testing.T, newKeyValueMap func() KeyValueMap) {
+func testKeyValueMapUpdateMany(t *testing.T, newKeyValueMap func() BaseKeyValueMap) {
 	store := newKeyValueMap()
 	ctx, cancel := NewTestContext()
 	defer cancel()
@@ -340,7 +340,7 @@ func testKeyValueMapUpdateMany(t *testing.T, newKeyValueMap func() KeyValueMap) 
 	})
 }
 
-func testKeyValueMapDelete(t *testing.T, newKeyValueMap func() KeyValueMap) {
+func testKeyValueMapDelete(t *testing.T, newKeyValueMap func() BaseKeyValueMap) {
 	store := newKeyValueMap()
 	ctx, cancel := NewTestContext()
 	defer cancel()

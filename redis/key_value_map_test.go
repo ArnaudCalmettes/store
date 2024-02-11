@@ -57,11 +57,11 @@ func TestKeyValueMapReset(t *testing.T) {
 	)
 }
 
-func makeNewKeyValueMap(t *testing.T) func() KeyValueMap {
+func makeNewKeyValueMap(t *testing.T) func() BaseKeyValueMap {
 	t.Helper()
 	s := miniredis.RunT(t)
 	rdb := redis.NewClient(&redis.Options{Addr: s.Addr()})
-	newKeyValueMap := func() KeyValueMap {
+	newKeyValueMap := func() BaseKeyValueMap {
 		suffix := make([]byte, 4)
 		rand.Read(suffix)
 		namespace := fmt.Sprintf("key_value_map_%s", hex.EncodeToString(suffix))

@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	//!lint ignore ST10001 shared definitions
+	//lint:ignore ST1001 shared definitions
 	. "github.com/ArnaudCalmettes/store"
 	"github.com/go-redis/redis/v8"
 )
@@ -67,7 +67,7 @@ func (k *keyValueMap) GetAll(ctx context.Context) (map[string]string, error) {
 	return k.rdb.HGetAll(ctx, k.namespace).Result()
 }
 
-func (k *keyValueMap) UpdateOne(ctx context.Context, key string, update MapUpdateFunc) error {
+func (k *keyValueMap) UpdateOne(ctx context.Context, key string, update UpdateFunc[string]) error {
 	txFunc := func(tx *redis.Tx) error {
 		value, err := tx.HGet(ctx, k.namespace, key).Result()
 		if err != nil && !errors.Is(err, redis.Nil) {
@@ -97,7 +97,7 @@ func (k *keyValueMap) UpdateOne(ctx context.Context, key string, update MapUpdat
 	return err
 }
 
-func (k *keyValueMap) UpdateMany(ctx context.Context, keys []string, update MapUpdateFunc) error {
+func (k *keyValueMap) UpdateMany(ctx context.Context, keys []string, update UpdateFunc[string]) error {
 	if len(keys) == 0 {
 		return nil
 	}
