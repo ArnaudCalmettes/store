@@ -74,6 +74,19 @@ func testKeyValueMapGetSetMany(t *testing.T, newKeyValueMap func() KeyValueMap) 
 	ctx, cancel := NewTestContext()
 	defer cancel()
 
+	t.Run("get many empty", func(t *testing.T) {
+		result, err := store.GetMany(ctx, []string{})
+		Expect(t,
+			NoError(err),
+			Equal(map[string]string{}, result),
+		)
+	})
+	t.Run("set many empty", func(t *testing.T) {
+		err := store.SetMany(ctx, map[string]string{})
+		Expect(t,
+			NoError(err),
+		)
+	})
 	t.Run("nominal", func(t *testing.T) {
 		err := store.SetMany(ctx, map[string]string{
 			"one":   "one",
@@ -85,7 +98,7 @@ func testKeyValueMapGetSetMany(t *testing.T, newKeyValueMap func() KeyValueMap) 
 		)
 
 		result, err := store.GetMany(ctx, []string{"one", "two", "three", "four"})
-		Require(t,
+		Expect(t,
 			NoError(err),
 			Equal(
 				map[string]string{
@@ -227,6 +240,12 @@ func testKeyValueMapUpdateMany(t *testing.T, newKeyValueMap func() KeyValueMap) 
 	ctx, cancel := NewTestContext()
 	defer cancel()
 
+	t.Run("empty keys", func(t *testing.T) {
+		err := store.UpdateMany(ctx, []string{}, nil)
+		Expect(t,
+			NoError(err),
+		)
+	})
 	t.Run("key does not exist", func(t *testing.T) {
 		id := uuid.NewString()
 		var called bool
@@ -326,24 +345,32 @@ func testKeyValueMapDelete(t *testing.T, newKeyValueMap func() KeyValueMap) {
 	ctx, cancel := NewTestContext()
 	defer cancel()
 
-	err := store.SetMany(ctx, map[string]string{
-		"one": "one",
-		"two": "two",
+	t.Run("empty keys", func(t *testing.T) {
+		err := store.Delete(ctx)
+		Expect(t,
+			NoError(err),
+		)
 	})
-	Require(t,
-		NoError(err),
-	)
+	t.Run("nominal", func(t *testing.T) {
+		err := store.SetMany(ctx, map[string]string{
+			"one": "one",
+			"two": "two",
+		})
+		Require(t,
+			NoError(err),
+		)
 
-	err = store.Delete(ctx, "three", "two")
-	Expect(t,
-		NoError(err),
-	)
+		err = store.Delete(ctx, "three", "two")
+		Expect(t,
+			NoError(err),
+		)
 
-	all, err := store.GetMany(ctx, []string{"one", "two", "three"})
-	Expect(t,
-		NoError(err),
-		Equal(map[string]string{"one": "one"}, all),
-	)
+		all, err := store.GetMany(ctx, []string{"one", "two", "three"})
+		Expect(t,
+			NoError(err),
+			Equal(map[string]string{"one": "one"}, all),
+		)
+	})
 }
 
 func pointerTo[T any](obj T) *T {
