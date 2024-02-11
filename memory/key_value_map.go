@@ -10,10 +10,11 @@ import (
 )
 
 func NewKeyValueMap() *keyValueMap {
-	return &keyValueMap{
-		items:    make(map[string]string),
-		ErrorMap: DefaultErrorMap,
+	k := &keyValueMap{
+		items: make(map[string]string),
 	}
+	k.InitDefaultErrors()
+	return k
 }
 
 type keyValueMap struct {
@@ -24,12 +25,16 @@ type keyValueMap struct {
 
 func (k *keyValueMap) WithErrorMap(errorMap ErrorMap) *keyValueMap {
 	k.ErrorMap = errorMap
+	k.InitDefaultErrors()
 	return k
 }
 
 func (k *keyValueMap) SetOne(ctx context.Context, key string, value string) error {
 	k.mtx.Lock()
 	defer k.mtx.Unlock()
+	if key == "" {
+		return k.ErrEmptyKey
+	}
 	k.items[key] = value
 	return nil
 }
@@ -38,6 +43,7 @@ func (k *keyValueMap) SetMany(ctx context.Context, items map[string]string) erro
 	k.mtx.Lock()
 	defer k.mtx.Unlock()
 	maps.Copy(k.items, items)
+	delete(k.items, "")
 	return nil
 }
 
@@ -75,6 +81,9 @@ func (k *keyValueMap) GetAll(ctx context.Context) (map[string]string, error) {
 func (k *keyValueMap) UpdateOne(ctx context.Context, key string, update UpdateFunc[string]) error {
 	k.mtx.Lock()
 	defer k.mtx.Unlock()
+	if key == "" {
+		return k.ErrEmptyKey
+	}
 	var valuePtr *string
 	value, ok := k.items[key]
 	if ok {
@@ -97,6 +106,9 @@ func (k *keyValueMap) UpdateMany(ctx context.Context, keys []string, update Upda
 
 	updatedValues := make(map[string]string, len(keys))
 	for _, key := range keys {
+		if key == "" {
+			continue
+		}
 		var valuePtr *string
 		value, ok := k.items[key]
 		if ok {

@@ -36,6 +36,12 @@ func testKeyValueMapGetSetOne(t *testing.T, newKeyValueMap func() BaseKeyValueMa
 			IsError(ErrNotFound, err),
 		)
 	})
+	t.Run("set empty key", func(t *testing.T) {
+		err := store.SetOne(ctx, "", "value")
+		Expect(t,
+			IsError(ErrEmptyKey, err),
+		)
+	})
 	t.Run("nominal", func(t *testing.T) {
 		key := uuid.NewString()
 		err := store.SetOne(ctx, key, "value")
@@ -171,6 +177,12 @@ func testKeyValueMapUpdateOne(t *testing.T, newKeyValueMap func() BaseKeyValueMa
 	ctx, cancel := NewTestContext()
 	defer cancel()
 
+	t.Run("empty key", func(t *testing.T) {
+		err := store.UpdateOne(ctx, "", nil)
+		Expect(t,
+			IsError(ErrEmptyKey, err),
+		)
+	})
 	t.Run("does not exist", func(t *testing.T) {
 		errCalled := errors.New("called")
 		updateFunc := func(_ string, value *string) (*string, error) {
@@ -194,9 +206,9 @@ func testKeyValueMapUpdateOne(t *testing.T, newKeyValueMap func() BaseKeyValueMa
 		updateFunc := func(key string, value *string) (*string, error) {
 			Require(t,
 				Equal(id, key),
-				Equal(pointerTo("initial value"), value),
+				Equal(PointerTo("initial value"), value),
 			)
-			return pointerTo("updated value"), nil
+			return PointerTo("updated value"), nil
 		}
 		err = store.UpdateOne(ctx, id, updateFunc)
 		Require(t,
@@ -240,8 +252,14 @@ func testKeyValueMapUpdateMany(t *testing.T, newKeyValueMap func() BaseKeyValueM
 	ctx, cancel := NewTestContext()
 	defer cancel()
 
-	t.Run("empty keys", func(t *testing.T) {
+	t.Run("no keys", func(t *testing.T) {
 		err := store.UpdateMany(ctx, []string{}, nil)
+		Expect(t,
+			NoError(err),
+		)
+	})
+	t.Run("empty keys", func(t *testing.T) {
+		err := store.UpdateMany(ctx, []string{""}, nil)
 		Expect(t,
 			NoError(err),
 		)
@@ -255,7 +273,7 @@ func testKeyValueMapUpdateMany(t *testing.T, newKeyValueMap func() BaseKeyValueM
 				Equal(id, key),
 				IsNilPointer(value),
 			)
-			return pointerTo("value"), nil
+			return PointerTo("value"), nil
 		}
 		err := store.UpdateMany(ctx, []string{id}, updateFunc)
 		Expect(t,
@@ -279,9 +297,9 @@ func testKeyValueMapUpdateMany(t *testing.T, newKeyValueMap func() BaseKeyValueM
 		updateFunc := func(key string, value *string) (*string, error) {
 			Require(t,
 				Equal(id, key),
-				Equal(pointerTo("initial value"), value),
+				Equal(PointerTo("initial value"), value),
 			)
-			return pointerTo("updated value"), nil
+			return PointerTo("updated value"), nil
 		}
 		err = store.UpdateMany(ctx, []string{id}, updateFunc)
 		Require(t,
@@ -303,7 +321,7 @@ func testKeyValueMapUpdateMany(t *testing.T, newKeyValueMap func() BaseKeyValueM
 
 		errUpdate := errors.New("update error")
 		updateFunc := func(string, *string) (*string, error) {
-			return pointerTo("updated value"), errUpdate
+			return PointerTo("updated value"), errUpdate
 		}
 		err = store.UpdateMany(ctx, []string{id}, updateFunc)
 		Require(t,
@@ -371,8 +389,4 @@ func testKeyValueMapDelete(t *testing.T, newKeyValueMap func() BaseKeyValueMap) 
 			Equal(map[string]string{"one": "one"}, all),
 		)
 	})
-}
-
-func pointerTo[T any](obj T) *T {
-	return &obj
 }

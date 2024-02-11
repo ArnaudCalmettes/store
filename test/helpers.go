@@ -300,3 +300,7 @@ func ReadChannel[T any](ctx context.Context, ch <-chan T) (T, error) {
 		return m, nil
 	}
 }
+
+func PointerTo[T any](obj T) *T {
+	return &obj
+}

@@ -10,11 +10,12 @@ import (
 )
 
 func NewKeyValueMap(rdb redis.UniversalClient, namespace string) *keyValueMap {
-	return &keyValueMap{
-		rdb,
-		namespace,
-		DefaultErrorMap,
+	k := &keyValueMap{
+		rdb:       rdb,
+		namespace: namespace,
 	}
+	k.InitDefaultErrors()
+	return k
 }
 
 type keyValueMap struct {
@@ -25,14 +26,19 @@ type keyValueMap struct {
 
 func (k *keyValueMap) WithErrorMap(errorMap ErrorMap) *keyValueMap {
 	k.ErrorMap = errorMap
+	k.InitDefaultErrors()
 	return k
 }
 
 func (k *keyValueMap) SetOne(ctx context.Context, key string, value string) error {
+	if key == "" {
+		return k.ErrEmptyKey
+	}
 	return k.rdb.HSet(ctx, k.namespace, key, value).Err()
 }
 
 func (k *keyValueMap) SetMany(ctx context.Context, items map[string]string) error {
+	delete(items, "")
 	if len(items) == 0 {
 		return nil
 	}
@@ -68,6 +74,9 @@ func (k *keyValueMap) GetAll(ctx context.Context) (map[string]string, error) {
 }
 
 func (k *keyValueMap) UpdateOne(ctx context.Context, key string, update UpdateFunc[string]) error {
+	if key == "" {
+		return k.ErrEmptyKey
+	}
 	txFunc := func(tx *redis.Tx) error {
 		value, err := tx.HGet(ctx, k.namespace, key).Result()
 		if err != nil && !errors.Is(err, redis.Nil) {
