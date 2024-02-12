@@ -28,10 +28,9 @@ type keyValueMap struct {
 	ErrorMap
 }
 
-func (k *keyValueMap) WithErrorMap(errorMap ErrorMap) *keyValueMap {
+func (k *keyValueMap) SetErrorMap(errorMap ErrorMap) {
 	k.ErrorMap = errorMap
 	k.InitDefaultErrors()
-	return k
 }
 
 func (k *keyValueMap) SetOne(ctx context.Context, key string, value string) error {

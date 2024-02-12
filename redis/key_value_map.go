@@ -9,6 +9,12 @@ import (
 	"github.com/go-redis/redis/v8"
 )
 
+var (
+	_ BaseKeyValueMap = (*keyValueMap)(nil)
+	_ Resetter        = (*keyValueMap)(nil)
+	_ ErrorMapSetter  = (*keyValueMap)(nil)
+)
+
 func NewKeyValueMap(rdb redis.UniversalClient, namespace string) *keyValueMap {
 	k := &keyValueMap{
 		rdb:       rdb,
@@ -24,10 +30,9 @@ type keyValueMap struct {
 	ErrorMap
 }
 
-func (k *keyValueMap) WithErrorMap(errorMap ErrorMap) *keyValueMap {
+func (k *keyValueMap) SetErrorMap(errorMap ErrorMap) {
 	k.ErrorMap = errorMap
 	k.InitDefaultErrors()
-	return k
 }
 
 func (k *keyValueMap) SetOne(ctx context.Context, key string, value string) error {

@@ -1,4 +1,4 @@
-package memory
+package serializer
 
 import (
 	"context"
@@ -6,20 +6,24 @@ import (
 	"testing"
 
 	. "github.com/ArnaudCalmettes/store"
+	"github.com/ArnaudCalmettes/store/memory"
 	. "github.com/ArnaudCalmettes/store/test"
 	. "github.com/ArnaudCalmettes/store/test/helpers"
 )
 
-func TestMemoryKeyValueStore(t *testing.T) {
+func TestSerializerKeyValueStore(t *testing.T) {
 	newStore := func() BaseKeyValueStore[Entry] {
-		return NewKeyValueStore[Entry]()
+		return NewKeyValueStore(
+			NewJSON[Entry](),
+			memory.NewKeyValueMap(),
+		)
 	}
 	TestBaseKeyValueStore(t, newStore)
 }
 
 func TestKeyValueStoreCustomErrors(t *testing.T) {
 	errTest := errors.New("test")
-	store := NewKeyValueStore[Entry]()
+	store := NewKeyValueStore(NewJSON[Entry](), memory.NewKeyValueMap())
 	store.SetErrorMap(ErrorMap{
 		ErrNotFound: errTest,
 	})
@@ -30,7 +34,7 @@ func TestKeyValueStoreCustomErrors(t *testing.T) {
 }
 
 func TestKeyValueStoreReset(t *testing.T) {
-	store := NewKeyValueStore[Entry]()
+	store := NewKeyValueStore(NewJSON[Entry](), memory.NewKeyValueMap())
 	err := store.SetMany(context.Background(), map[string]*Entry{
 		"one":   {String: "one"},
 		"three": {String: "three"},

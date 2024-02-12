@@ -24,7 +24,7 @@ func TestKeyValueMapCustomErrors(t *testing.T) {
 	s := miniredis.RunT(t)
 	rdb := redis.NewClient(&redis.Options{Addr: s.Addr()})
 	store := NewKeyValueMap(rdb, "test_custom_errors")
-	store.WithErrorMap(ErrorMap{
+	store.SetErrorMap(ErrorMap{
 		ErrNotFound: errTest,
 	})
 	_, err := store.GetOne(context.Background(), "does not exist")

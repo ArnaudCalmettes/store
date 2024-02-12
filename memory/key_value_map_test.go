@@ -5,19 +5,20 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/ArnaudCalmettes/store"
+	. "github.com/ArnaudCalmettes/store"
 	. "github.com/ArnaudCalmettes/store/test"
 	. "github.com/ArnaudCalmettes/store/test/helpers"
 )
 
 func TestMemoryKeyValueMap(t *testing.T) {
-	newKeyValueMap := func() store.BaseKeyValueMap { return NewKeyValueMap() }
+	newKeyValueMap := func() BaseKeyValueMap { return NewKeyValueMap() }
 	TestBaseKeyValueMap(t, newKeyValueMap)
 }
 
 func TestKeyValueMapCustomErrors(t *testing.T) {
 	errTest := errors.New("test")
-	store := NewKeyValueMap().WithErrorMap(store.ErrorMap{
+	store := NewKeyValueMap()
+	store.SetErrorMap(ErrorMap{
 		ErrNotFound: errTest,
 	})
 	_, err := store.GetOne(context.Background(), "does not exist")
