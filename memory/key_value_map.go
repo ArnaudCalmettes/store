@@ -9,6 +9,11 @@ import (
 	. "github.com/ArnaudCalmettes/store"
 )
 
+var (
+	_ BaseKeyValueMap = (*keyValueMap)(nil)
+	_ Resetter        = (*keyValueMap)(nil)
+)
+
 func NewKeyValueMap() *keyValueMap {
 	k := &keyValueMap{
 		items: make(map[string]string),

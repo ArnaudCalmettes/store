@@ -9,27 +9,27 @@ import (
 	"github.com/google/uuid"
 )
 
-func TestKeyValueMap(t *testing.T, newKeyValueMap func() BaseKeyValueMap) {
+func TestBaseKeyValueMap(t *testing.T, newMap func() BaseKeyValueMap) {
 	type TestFunc func(*testing.T, func() BaseKeyValueMap)
 	run := func(t *testing.T, name string, testFunc TestFunc) {
 		t.Run(name, func(t *testing.T) {
-			testFunc(t, newKeyValueMap)
+			testFunc(t, newMap)
 		})
 	}
 	t.Parallel()
-	run(t, "GetSetOne", testKeyValueMapGetSetOne)
-	run(t, "GetSetMany", testKeyValueMapGetSetMany)
-	run(t, "GetAll", testKeyValueMapGetAll)
-	run(t, "UpdateOne", testKeyValueMapUpdateOne)
-	run(t, "UpdateMany", testKeyValueMapUpdateMany)
-	run(t, "Delete", testKeyValueMapDelete)
+	run(t, "GetSetOne", testBaseKeyValueMapGetSetOne)
+	run(t, "GetSetMany", testBaseKeyValueMapGetSetMany)
+	run(t, "GetAll", testBaseKeyValueMapGetAll)
+	run(t, "UpdateOne", testBaseKeyValueMapUpdateOne)
+	run(t, "UpdateMany", testBaseKeyValueMapUpdateMany)
+	run(t, "Delete", testBaseKeyValueMapDelete)
 }
 
-func testKeyValueMapGetSetOne(t *testing.T, newKeyValueMap func() BaseKeyValueMap) {
-	store := newKeyValueMap()
+func testBaseKeyValueMapGetSetOne(t *testing.T, newMap func() BaseKeyValueMap) {
+	store := newMap()
 	ctx, cancel := NewTestContext()
 	defer cancel()
-	t.Run("get not found", func(t *testing.T) {
+	t.Run("get non existent", func(t *testing.T) {
 		result, err := store.GetOne(ctx, "does not exist")
 		Expect(t,
 			IsZero(result),
@@ -75,8 +75,8 @@ func testKeyValueMapGetSetOne(t *testing.T, newKeyValueMap func() BaseKeyValueMa
 	})
 }
 
-func testKeyValueMapGetSetMany(t *testing.T, newKeyValueMap func() BaseKeyValueMap) {
-	store := newKeyValueMap()
+func testBaseKeyValueMapGetSetMany(t *testing.T, newMap func() BaseKeyValueMap) {
+	store := newMap()
 	ctx, cancel := NewTestContext()
 	defer cancel()
 
@@ -87,10 +87,23 @@ func testKeyValueMapGetSetMany(t *testing.T, newKeyValueMap func() BaseKeyValueM
 			Equal(map[string]string{}, result),
 		)
 	})
-	t.Run("set many empty", func(t *testing.T) {
+	t.Run("set many empty map", func(t *testing.T) {
 		err := store.SetMany(ctx, map[string]string{})
 		Expect(t,
 			NoError(err),
+		)
+	})
+	t.Run("set many empty key", func(t *testing.T) {
+		err := store.SetMany(ctx, map[string]string{
+			"": "value",
+		})
+		Require(t,
+			NoError(err),
+		)
+		all, err := store.GetAll(ctx)
+		Expect(t,
+			NoError(err),
+			Equal(map[string]string{}, all),
 		)
 	})
 	t.Run("nominal", func(t *testing.T) {
@@ -116,7 +129,6 @@ func testKeyValueMapGetSetMany(t *testing.T, newKeyValueMap func() BaseKeyValueM
 			),
 		)
 	})
-
 	t.Run("overwrite", func(t *testing.T) {
 		err := store.SetMany(ctx, map[string]string{
 			"one": "ONE",
@@ -141,8 +153,8 @@ func testKeyValueMapGetSetMany(t *testing.T, newKeyValueMap func() BaseKeyValueM
 	})
 }
 
-func testKeyValueMapGetAll(t *testing.T, newKeyValueMap func() BaseKeyValueMap) {
-	store := newKeyValueMap()
+func testBaseKeyValueMapGetAll(t *testing.T, newMap func() BaseKeyValueMap) {
+	store := newMap()
 	ctx, cancel := NewTestContext()
 	defer cancel()
 
@@ -172,8 +184,8 @@ func testKeyValueMapGetAll(t *testing.T, newKeyValueMap func() BaseKeyValueMap) 
 	})
 }
 
-func testKeyValueMapUpdateOne(t *testing.T, newKeyValueMap func() BaseKeyValueMap) {
-	store := newKeyValueMap()
+func testBaseKeyValueMapUpdateOne(t *testing.T, newMap func() BaseKeyValueMap) {
+	store := newMap()
 	ctx, cancel := NewTestContext()
 	defer cancel()
 
@@ -247,8 +259,8 @@ func testKeyValueMapUpdateOne(t *testing.T, newKeyValueMap func() BaseKeyValueMa
 	})
 }
 
-func testKeyValueMapUpdateMany(t *testing.T, newKeyValueMap func() BaseKeyValueMap) {
-	store := newKeyValueMap()
+func testBaseKeyValueMapUpdateMany(t *testing.T, newMap func() BaseKeyValueMap) {
+	store := newMap()
 	ctx, cancel := NewTestContext()
 	defer cancel()
 
@@ -358,8 +370,8 @@ func testKeyValueMapUpdateMany(t *testing.T, newKeyValueMap func() BaseKeyValueM
 	})
 }
 
-func testKeyValueMapDelete(t *testing.T, newKeyValueMap func() BaseKeyValueMap) {
-	store := newKeyValueMap()
+func testBaseKeyValueMapDelete(t *testing.T, newMap func() BaseKeyValueMap) {
+	store := newMap()
 	ctx, cancel := NewTestContext()
 	defer cancel()
 

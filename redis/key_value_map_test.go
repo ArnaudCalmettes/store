@@ -15,7 +15,7 @@ import (
 )
 
 func TestRedisKeyValueMap(t *testing.T) {
-	TestKeyValueMap(t, makeNewKeyValueMap(t))
+	TestBaseKeyValueMap(t, makeNewKeyValueMap(t))
 }
 
 func TestKeyValueMapCustomErrors(t *testing.T) {

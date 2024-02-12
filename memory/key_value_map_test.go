@@ -11,7 +11,7 @@ import (
 
 func TestMemoryKeyValueMap(t *testing.T) {
 	newKeyValueMap := func() store.BaseKeyValueMap { return NewKeyValueMap() }
-	TestKeyValueMap(t, newKeyValueMap)
+	TestBaseKeyValueMap(t, newKeyValueMap)
 }
 
 func TestKeyValueMapCustomErrors(t *testing.T) {
