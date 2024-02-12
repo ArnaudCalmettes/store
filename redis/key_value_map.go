@@ -9,13 +9,13 @@ import (
 	"github.com/go-redis/redis/v8"
 )
 
-var (
-	_ BaseKeyValueMap = (*keyValueMap)(nil)
-	_ Resetter        = (*keyValueMap)(nil)
-	_ ErrorMapSetter  = (*keyValueMap)(nil)
-)
+type KeyValueMap interface {
+	BaseKeyValueMap
+	Resetter
+	ErrorMapSetter
+}
 
-func NewKeyValueMap(rdb redis.UniversalClient, namespace string) *keyValueMap {
+func NewKeyValueMap(rdb redis.UniversalClient, namespace string) KeyValueMap {
 	k := &keyValueMap{
 		rdb:       rdb,
 		namespace: namespace,

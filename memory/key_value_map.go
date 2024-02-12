@@ -9,12 +9,13 @@ import (
 	. "github.com/ArnaudCalmettes/store"
 )
 
-var (
-	_ BaseKeyValueMap = (*keyValueMap)(nil)
-	_ Resetter        = (*keyValueMap)(nil)
-)
+type KeyValueMap interface {
+	BaseKeyValueMap
+	Resetter
+	ErrorMapSetter
+}
 
-func NewKeyValueMap() *keyValueMap {
+func NewKeyValueMap() KeyValueMap {
 	k := &keyValueMap{
 		items: make(map[string]string),
 	}

@@ -8,12 +8,13 @@ import (
 	. "github.com/ArnaudCalmettes/store"
 )
 
-var (
-	_ BaseKeyValueStore[string] = (*keyValueStore[string])(nil)
-	_ Resetter                  = (*keyValueStore[string])(nil)
-)
+type KeyValueStore[T any] interface {
+	BaseKeyValueStore[T]
+	Resetter
+	ErrorMapSetter
+}
 
-func NewKeyValueStore[T any](serializer Serializer[T], storage MapInterface) *keyValueStore[T] {
+func NewKeyValueStore[T any](serializer Serializer[T], storage Map) KeyValueStore[T] {
 	k := &keyValueStore[T]{
 		storage:    storage,
 		Serializer: serializer,
@@ -22,14 +23,14 @@ func NewKeyValueStore[T any](serializer Serializer[T], storage MapInterface) *ke
 	return k
 }
 
-type MapInterface interface {
+type Map interface {
 	BaseKeyValueMap
 	ErrorMapSetter
 	Resetter
 }
 
 type keyValueStore[T any] struct {
-	storage MapInterface
+	storage Map
 	Serializer[T]
 	ErrorMap
 }
@@ -140,7 +141,7 @@ func (k *keyValueStore[T]) updateCallback(in UpdateFunc[T]) UpdateFunc[string] {
 		}
 		newData, err := k.Serialize(newValue)
 		if err != nil {
-			return nil, err
+			return nil, errors.Join(k.ErrSerialize, err)
 		}
 		return &newData, err
 	}

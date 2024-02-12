@@ -21,11 +21,11 @@ func TestRedisKeyValueStore(t *testing.T) {
 	test.TestBaseKeyValueStore(t, newStore)
 }
 
-func spawnNewKeyValueStore[T any](t *testing.T) func() KeyValueStoreInterface[T] {
+func spawnNewKeyValueStore[T any](t *testing.T) func() KeyValueStore[T] {
 	t.Helper()
 	s := miniredis.RunT(t)
 	rdb := redis.NewClient(&redis.Options{Addr: s.Addr()})
-	return func() KeyValueStoreInterface[T] {
+	return func() KeyValueStore[T] {
 		suffix := make([]byte, 4)
 		rand.Read(suffix)
 		namespace := fmt.Sprintf("key_value_store_%s", hex.EncodeToString(suffix))

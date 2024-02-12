@@ -7,12 +7,12 @@ import (
 	"github.com/go-redis/redis/v8"
 )
 
-type KeyValueStoreInterface[T any] interface {
+type KeyValueStore[T any] interface {
 	BaseKeyValueStore[T]
 	ErrorMapSetter
 	Resetter
 }
 
-func NewKeyValueStore[T any](rdb redis.UniversalClient, namespace string, s Serializer[T]) KeyValueStoreInterface[T] {
+func NewKeyValueStore[T any](rdb redis.UniversalClient, namespace string, s Serializer[T]) KeyValueStore[T] {
 	return serializer.NewKeyValueStore[T](s, NewKeyValueMap(rdb, namespace))
 }
