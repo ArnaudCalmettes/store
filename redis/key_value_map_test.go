@@ -10,6 +10,7 @@ import (
 
 	. "github.com/ArnaudCalmettes/store"
 	. "github.com/ArnaudCalmettes/store/test"
+	. "github.com/ArnaudCalmettes/store/test/helpers"
 	"github.com/alicebob/miniredis/v2"
 	"github.com/go-redis/redis/v8"
 )

@@ -7,6 +7,8 @@ import (
 
 	//lint:ignore ST1001 common definitions
 	. "github.com/ArnaudCalmettes/store"
+	//lint:ignore ST1001 test vocabulary
+	. "github.com/ArnaudCalmettes/store/test/helpers"
 	"github.com/google/uuid"
 )
 

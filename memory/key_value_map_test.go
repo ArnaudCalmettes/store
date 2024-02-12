@@ -7,6 +7,7 @@ import (
 
 	"github.com/ArnaudCalmettes/store"
 	. "github.com/ArnaudCalmettes/store/test"
+	. "github.com/ArnaudCalmettes/store/test/helpers"
 )
 
 func TestMemoryKeyValueMap(t *testing.T) {
