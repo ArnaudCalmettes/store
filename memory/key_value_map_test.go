@@ -11,7 +11,7 @@ import (
 )
 
 func TestMemoryKeyValueMap(t *testing.T) {
-	newKeyValueMap := func() BaseKeyValueMap { return NewKeyValueMap() }
+	newKeyValueMap := func(*testing.T) BaseKeyValueMap { return NewKeyValueMap() }
 	TestBaseKeyValueMap(t, newKeyValueMap)
 }
 

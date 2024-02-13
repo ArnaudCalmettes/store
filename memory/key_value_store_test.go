@@ -11,7 +11,7 @@ import (
 )
 
 func TestMemoryKeyValueStore(t *testing.T) {
-	newStore := func() BaseKeyValueStore[Entry] {
+	newStore := func(*testing.T) BaseKeyValueStore[Entry] {
 		return NewKeyValueStore[Entry]()
 	}
 	TestBaseKeyValueStore(t, newStore)

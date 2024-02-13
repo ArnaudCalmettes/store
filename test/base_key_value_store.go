@@ -3,7 +3,6 @@ package test
 import (
 	"errors"
 	"testing"
-	"time"
 
 	//lint:ignore ST1001 common definitions
 	. "github.com/ArnaudCalmettes/store"
@@ -13,14 +12,13 @@ import (
 )
 
 type Entry struct {
-	Time   time.Time
 	Float  float64
 	Int    int
 	Bool   bool
 	String string
 }
 
-type baseStoreConstructor = func() BaseKeyValueStore[Entry]
+type baseStoreConstructor = func(*testing.T) BaseKeyValueStore[Entry]
 
 func TestBaseKeyValueStore(t *testing.T, newStore baseStoreConstructor) {
 	type TestFunc = func(*testing.T, baseStoreConstructor)
@@ -39,11 +37,10 @@ func TestBaseKeyValueStore(t *testing.T, newStore baseStoreConstructor) {
 }
 
 func testBaseKeyValueStoreGetSetOne(t *testing.T, newStore baseStoreConstructor) {
-	store := newStore()
+	store := newStore(t)
 	ctx, cancel := NewTestContext()
 	defer cancel()
 	fixture := &Entry{
-		Time:   time.Now(),
 		Float:  43.5,
 		Int:    1337,
 		Bool:   true,
@@ -55,6 +52,13 @@ func testBaseKeyValueStoreGetSetOne(t *testing.T, newStore baseStoreConstructor)
 		Expect(t,
 			IsNilPointer(result),
 			IsError(ErrNotFound, err),
+		)
+	})
+	t.Run("get empty key", func(t *testing.T) {
+		result, err := store.GetOne(ctx, "")
+		Expect(t,
+			IsNilPointer(result),
+			IsError(ErrEmptyKey, err),
 		)
 	})
 	t.Run("set empty key", func(t *testing.T) {
@@ -98,7 +102,7 @@ func testBaseKeyValueStoreGetSetOne(t *testing.T, newStore baseStoreConstructor)
 }
 
 func testBaseKeyValueStoreGetSetMany(t *testing.T, newStore baseStoreConstructor) {
-	store := newStore()
+	store := newStore(t)
 	ctx, cancel := NewTestContext()
 	defer cancel()
 
@@ -176,7 +180,7 @@ func testBaseKeyValueStoreGetSetMany(t *testing.T, newStore baseStoreConstructor
 }
 
 func testBaseKeyValueStoreGetAll(t *testing.T, newStore baseStoreConstructor) {
-	store := newStore()
+	store := newStore(t)
 	ctx, cancel := NewTestContext()
 	defer cancel()
 
@@ -207,7 +211,7 @@ func testBaseKeyValueStoreGetAll(t *testing.T, newStore baseStoreConstructor) {
 }
 
 func testBaseKeyValueStoreUpdateOne(t *testing.T, newStore baseStoreConstructor) {
-	store := newStore()
+	store := newStore(t)
 	ctx, cancel := NewTestContext()
 	defer cancel()
 
@@ -283,7 +287,7 @@ func testBaseKeyValueStoreUpdateOne(t *testing.T, newStore baseStoreConstructor)
 }
 
 func testBaseKeyValueStoreUpdateMany(t *testing.T, newStore baseStoreConstructor) {
-	store := newStore()
+	store := newStore(t)
 	ctx, cancel := NewTestContext()
 	defer cancel()
 
@@ -396,7 +400,7 @@ func testBaseKeyValueStoreUpdateMany(t *testing.T, newStore baseStoreConstructor
 }
 
 func testBaseKeyValueStoreDelete(t *testing.T, newStore baseStoreConstructor) {
-	store := newStore()
+	store := newStore(t)
 	ctx, cancel := NewTestContext()
 	defer cancel()
 

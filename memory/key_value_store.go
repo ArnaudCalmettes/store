@@ -37,6 +37,9 @@ func (k *keyValueStore[T]) SetErrorMap(errorMap ErrorMap) {
 func (k *keyValueStore[T]) GetOne(ctx context.Context, key string) (*T, error) {
 	k.mtx.RLock()
 	defer k.mtx.RUnlock()
+	if key == "" {
+		return nil, k.ErrEmptyKey
+	}
 	value, ok := k.items[key]
 	if !ok {
 		return nil, k.ErrNotFound

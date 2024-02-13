@@ -109,15 +109,19 @@ func DoesNotPanic(f func()) (err error) {
 	return nil
 }
 
-var IgnoreUnexported = cmpopts.IgnoreUnexported
-var IgnoreFields = cmpopts.IgnoreFields
-
 // Equal returns an error if values are different.
 func Equal[T any](want, got T, opts ...cmp.Option) error {
 	if !cmp.Equal(want, got, opts...) {
 		return fmt.Errorf(cmp.Diff(want, got, opts...))
 	}
 	return nil
+}
+
+var IgnoreUnexported = cmpopts.IgnoreUnexported
+
+func IgnoreFields[T any](fields ...string) cmp.Option {
+	var zero T
+	return cmpopts.IgnoreFields(zero, fields...)
 }
 
 // NotEqual returns an error if values are the same.

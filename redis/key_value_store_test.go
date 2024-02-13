@@ -1,6 +1,7 @@
 package redis
 
 import (
+	"context"
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
@@ -15,20 +16,23 @@ import (
 
 func TestRedisKeyValueStore(t *testing.T) {
 	newStoreConstructor := spawnNewKeyValueStore[test.Entry](t)
-	newStore := func() store.BaseKeyValueStore[test.Entry] {
-		return newStoreConstructor()
+	newStore := func(t *testing.T) store.BaseKeyValueStore[test.Entry] {
+		return newStoreConstructor(t)
 	}
 	test.TestBaseKeyValueStore(t, newStore)
 }
 
-func spawnNewKeyValueStore[T any](t *testing.T) func() KeyValueStore[T] {
+func spawnNewKeyValueStore[T any](t *testing.T) func(*testing.T) KeyValueStore[T] {
 	t.Helper()
 	s := miniredis.RunT(t)
 	rdb := redis.NewClient(&redis.Options{Addr: s.Addr()})
-	return func() KeyValueStore[T] {
+	return func(*testing.T) KeyValueStore[T] {
 		suffix := make([]byte, 4)
 		rand.Read(suffix)
 		namespace := fmt.Sprintf("key_value_store_%s", hex.EncodeToString(suffix))
+		t.Cleanup(func() {
+			rdb.Del(context.Background(), namespace).Err()
+		})
 		return NewKeyValueStore[T](rdb, namespace, serializer.NewJSON[T]())
 	}
 }

@@ -42,6 +42,9 @@ func (k *keyValueStore[T]) SetErrorMap(errorMap ErrorMap) {
 }
 
 func (k *keyValueStore[T]) GetOne(ctx context.Context, key string) (*T, error) {
+	if key == "" {
+		return nil, k.ErrEmptyKey
+	}
 	data, err := k.storage.GetOne(ctx, key)
 	if err != nil {
 		return nil, err
@@ -139,10 +142,7 @@ func (k *keyValueStore[T]) updateCallback(in UpdateFunc[T]) UpdateFunc[string] {
 		if err != nil || newValue == nil {
 			return nil, err
 		}
-		newData, err := k.Serialize(newValue)
-		if err != nil {
-			return nil, errors.Join(k.ErrSerialize, err)
-		}
+		newData, _ := k.Serialize(newValue)
 		return &newData, err
 	}
 }
