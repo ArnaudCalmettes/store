@@ -1,4 +1,4 @@
-package pgsql
+package sql
 
 import (
 	"github.com/ArnaudCalmettes/store/proxy"

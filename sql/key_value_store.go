@@ -1,13 +1,14 @@
-package pgsql
+package sql
 
 import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
 	"slices"
 
 	"github.com/uptrace/bun"
+	"github.com/uptrace/bun/dialect"
+	"github.com/uptrace/bun/dialect/feature"
 
 	//lint:ignore ST1001 common definitions
 	. "github.com/ArnaudCalmettes/store"
@@ -63,7 +64,6 @@ func (k *keyValueStore[T]) GetOne(ctx context.Context, key string) (*T, error) {
 	}
 	var item T
 	query := k.db.NewSelect().Model(&item).Where("? = ?", bun.Ident(k.spec.KeySQL), key)
-	fmt.Println(query.String())
 	err := query.Scan(ctx)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -123,13 +123,7 @@ func (k *keyValueStore[T]) SetMany(ctx context.Context, items map[string]*T) err
 
 func (k *keyValueStore[T]) setRequest(ctx context.Context, model any) error {
 	query := k.db.NewInsert().Model(model)
-	query.On(fmt.Sprintf("CONFLICT (%s) DO UPDATE", k.spec.KeySQL))
-	for _, column := range k.spec.ColumnNames {
-		if column == k.spec.KeySQL {
-			continue
-		}
-		query.Set(fmt.Sprintf("%s = EXCLUDED.%s", column, column))
-	}
+	k.handleInsertConflict(query)
 	_, err := query.Exec(ctx)
 	return err
 }
@@ -147,25 +141,16 @@ func (k *keyValueStore[T]) UpdateMany(ctx context.Context, keys []string, update
 	}
 	keys = slices.DeleteFunc(keys, func(e string) bool { return e == "" })
 	return k.db.RunInTx(ctx, k.txOptions, func(ctx context.Context, tx bun.Tx) error {
-		var rows []T
-		err := tx.NewSelect().Model(&rows).For("UPDATE").
-			Where("? IN (?)", bun.Ident(k.spec.KeySQL), bun.In(keys)).
-			Scan(ctx)
+		var rows []*T
+		selectQuery := tx.NewSelect().Model(&rows).Where("? IN (?)", bun.Ident(k.spec.KeySQL), bun.In(keys))
+		k.handleLocking(selectQuery)
+		err := selectQuery.Scan(ctx)
 		if err != nil {
 			return err
 		}
-		toUpdate := make(map[string]*T, len(keys))
-		for _, key := range keys {
-			toUpdate[key] = nil
-		}
-		for i := range rows {
-			row := &rows[i]
-			key := k.getKey(row)
-			toUpdate[key] = row
-
-		}
-		updatedRows := make([]*T, 0, len(toUpdate))
-		for key, row := range toUpdate {
+		initialRows := k.makeRowMap(keys, rows)
+		updatedRows := make([]*T, 0, len(initialRows))
+		for key, row := range initialRows {
 			newRow, err := update(key, row)
 			if err != nil {
 				return err
@@ -179,17 +164,23 @@ func (k *keyValueStore[T]) UpdateMany(ctx context.Context, keys []string, update
 		if len(updatedRows) == 0 {
 			return nil
 		}
-		query := tx.NewInsert().Model(&updatedRows)
-		query.On(fmt.Sprintf("CONFLICT (%s) DO UPDATE", k.spec.KeySQL))
-		for _, column := range k.spec.ColumnNames {
-			if column == k.spec.KeySQL {
-				continue
-			}
-			query.Set(fmt.Sprintf("%s = EXCLUDED.%s", column, column))
-		}
-		_, err = query.Exec(ctx)
+		insertQuery := tx.NewInsert().Model(&updatedRows)
+		k.handleInsertConflict(insertQuery)
+		_, err = insertQuery.Exec(ctx)
 		return err
 	})
+}
+
+func (k *keyValueStore[T]) makeRowMap(keys []string, rows []*T) map[string]*T {
+	result := make(map[string]*T, len(keys))
+	for _, key := range keys {
+		result[key] = nil
+	}
+	for _, row := range rows {
+		key := k.getKey(row)
+		result[key] = row
+	}
+	return result
 }
 
 func (k *keyValueStore[T]) Delete(ctx context.Context, keys ...string) error {
@@ -202,4 +193,28 @@ func (k *keyValueStore[T]) Delete(ctx context.Context, keys ...string) error {
 func (k *keyValueStore[T]) Reset(ctx context.Context) error {
 	err := k.db.ResetModel(ctx, (*T)(nil))
 	return err
+}
+
+func (k *keyValueStore[T]) handleInsertConflict(query *bun.InsertQuery) {
+	if k.db.HasFeature(feature.InsertOnConflict) {
+		query.On("CONFLICT (?) DO UPDATE", bun.Ident(k.spec.KeySQL))
+		for _, column := range k.spec.ColumnNames {
+			if column == k.spec.KeySQL {
+				continue
+			}
+			query.Set("?0 = EXCLUDED.?0", bun.Ident(column))
+		}
+	}
+	if k.db.HasFeature(feature.InsertOnDuplicateKey) {
+		query.On("DUPLICATE KEY UPDATE")
+	}
+}
+
+func (k *keyValueStore[T]) handleLocking(query *bun.SelectQuery) {
+	switch k.db.Dialect().Name() {
+	case dialect.SQLite:
+		return
+	case dialect.PG, dialect.MySQL:
+		query.For("UPDATE")
+	}
 }
