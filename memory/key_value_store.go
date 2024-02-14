@@ -7,10 +7,13 @@ import (
 
 	//lint:ignore ST1001 common definitions
 	. "github.com/ArnaudCalmettes/store"
+	"github.com/ArnaudCalmettes/store/internal/inspect"
+	"github.com/ArnaudCalmettes/store/internal/options"
 )
 
 type KeyValueStore[T any] interface {
 	BaseKeyValueStore[T]
+	Lister[T]
 	Resetter
 	ErrorMapSetter
 }
@@ -32,6 +35,36 @@ type keyValueStore[T any] struct {
 func (k *keyValueStore[T]) SetErrorMap(errorMap ErrorMap) {
 	k.ErrorMap = errorMap
 	k.InitDefaultErrors()
+}
+
+func (k *keyValueStore[T]) List(ctx context.Context, opts ...*Options) ([]*T, error) {
+	opt := options.Merge(opts...)
+	predicate, err := k.getPredicate(opt)
+	if err != nil {
+		return nil, err
+	}
+	k.mtx.RLock()
+	defer k.mtx.RUnlock()
+	result := make([]*T, 0, len(k.items))
+	for _, item := range k.items {
+		val := item
+		if predicate(&val) {
+			result = append(result, &item)
+		}
+	}
+	return result, nil
+}
+
+func (k *keyValueStore[T]) getPredicate(opt *Options) (func(*T) bool, error) {
+	filterPred := func(*T) bool { return true }
+	if opt.Filter != nil {
+		var err error
+		filterPred, err = inspect.NewPredicate[T](opt.Filter)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return filterPred, nil
 }
 
 func (k *keyValueStore[T]) GetOne(ctx context.Context, key string) (*T, error) {

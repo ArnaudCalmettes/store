@@ -50,3 +50,10 @@ func TestKeyValueStoreReset(t *testing.T) {
 		Equal(map[string]*Entry{}, all),
 	)
 }
+
+func TestKeyValueStoreLister(t *testing.T) {
+	newStore := func(*testing.T) TestListerInterface[Person] {
+		return NewKeyValueStore[Person]()
+	}
+	TestLister(t, newStore)
+}

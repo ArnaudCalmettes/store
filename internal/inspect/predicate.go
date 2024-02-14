@@ -14,7 +14,7 @@ var (
 	errInvalidFilter = errors.New("invalid filter")
 )
 
-func NewPredicate[T any](filter *store.Filter) (func(*T) bool, error) {
+func NewPredicate[T any](filter *store.FilterSpec) (func(*T) bool, error) {
 	switch {
 	case filter.Where != nil:
 		return predicateFromWhereClause[T](filter.Where)
@@ -63,7 +63,7 @@ func predicateFromWhereClause[T any](w *store.WhereClause) (func(*T) bool, error
 	return nil, fmt.Errorf("%w: %s", errTypeNotSupported, reflect.TypeOf(w.Value).Name())
 }
 
-func predicateAll[T any](all []*store.Filter) (func(*T) bool, error) {
+func predicateAll[T any](all []*store.FilterSpec) (func(*T) bool, error) {
 	var err error
 	preds := make([]func(*T) bool, len(all))
 	for i, filter := range all {
@@ -83,7 +83,7 @@ func predicateAll[T any](all []*store.Filter) (func(*T) bool, error) {
 	return pred, nil
 }
 
-func predicateAny[T any](all []*store.Filter) (func(*T) bool, error) {
+func predicateAny[T any](all []*store.FilterSpec) (func(*T) bool, error) {
 	var err error
 	preds := make([]func(*T) bool, len(all))
 	for i, filter := range all {

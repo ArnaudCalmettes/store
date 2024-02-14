@@ -12,7 +12,7 @@ func TestNewPredicateErrors(t *testing.T) {
 	t.Parallel()
 	t.Run("invalid filter", func(t *testing.T) {
 		type Entry struct{}
-		f, err := NewPredicate[Entry](&store.Filter{})
+		f, err := NewPredicate[Entry](&store.FilterSpec{})
 		Expect(t,
 			Equal(nil, f),
 			IsError(errInvalidFilter, err),

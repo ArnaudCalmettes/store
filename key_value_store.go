@@ -13,10 +13,6 @@ type BaseKeyValueStore[T any] interface {
 	Delete(ctx context.Context, keys ...string) error
 }
 
-type Options struct {
-	Filter *Filter
-}
-
 type Lister[T any] interface {
-	List(ctx context.Context, opts ...*Options)
+	List(ctx context.Context, opts ...*Options) ([]*T, error)
 }
