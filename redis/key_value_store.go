@@ -9,6 +9,7 @@ import (
 
 type KeyValueStore[T any] interface {
 	BaseKeyValueStore[T]
+	Lister[T]
 	ErrorMapSetter
 	Resetter
 }

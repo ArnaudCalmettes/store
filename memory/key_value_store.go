@@ -2,6 +2,7 @@ package memory
 
 import (
 	"context"
+	"errors"
 	"maps"
 	"sync"
 
@@ -41,14 +42,13 @@ func (k *keyValueStore[T]) List(ctx context.Context, opts ...*Options) ([]*T, er
 	opt := options.Merge(opts...)
 	predicate, err := k.getPredicate(opt)
 	if err != nil {
-		return nil, err
+		return nil, errors.Join(k.ErrInvalidFilter, err)
 	}
 	k.mtx.RLock()
 	defer k.mtx.RUnlock()
 	result := make([]*T, 0, len(k.items))
 	for _, item := range k.items {
-		val := item
-		if predicate(&val) {
+		if predicate(&item) {
 			result = append(result, &item)
 		}
 	}

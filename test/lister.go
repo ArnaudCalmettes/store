@@ -34,7 +34,19 @@ func TestLister(t *testing.T, newLister listerConstructor) {
 	Require(t,
 		NoError(err),
 	)
-
+	t.Run("no filter", func(t *testing.T) {
+		result, err := store.List(ctx)
+		Expect(t,
+			NoError(err),
+			SliceHasLength(3, result),
+		)
+	})
+	t.Run("invalid filter", func(t *testing.T) {
+		_, err := store.List(ctx, Filter(Where("Name", "!=", 42)))
+		Expect(t,
+			IsError(ErrInvalidFilter, err),
+		)
+	})
 	t.Run("filter nominal", func(t *testing.T) {
 		result, err := store.List(ctx, Filter(Where("Age", "<", 18)))
 		Expect(t,
