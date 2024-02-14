@@ -12,3 +12,11 @@ type BaseKeyValueStore[T any] interface {
 	UpdateMany(ctx context.Context, keys []string, update UpdateFunc[T]) error
 	Delete(ctx context.Context, keys ...string) error
 }
+
+type Options struct {
+	Filter *Filter
+}
+
+type Lister[T any] interface {
+	List(ctx context.Context, opts ...*Options)
+}

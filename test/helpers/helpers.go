@@ -167,7 +167,7 @@ func IsNotZerof[T any](have T, msg string, args ...any) error {
 
 type CheckFunc[T any] func(T, error) error
 
-func All[T any](checks ...CheckFunc[T]) CheckFunc[T] {
+func CheckAll[T any](checks ...CheckFunc[T]) CheckFunc[T] {
 	return func(got T, err error) error {
 		for _, check := range checks {
 			if err := check(got, err); err != nil {
