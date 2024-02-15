@@ -1,6 +1,7 @@
 package inspect
 
 import (
+	"sync"
 	"testing"
 	"time"
 
@@ -87,7 +88,7 @@ func TestNewPredicateErrors(t *testing.T) {
 		type Entry struct {
 			MaybeName *string
 		}
-		f, err := NewPredicate[Entry](store.Where("MaybeName", "=", (*string)(nil)))
+		f, err := NewPredicate[Entry](store.Where("MaybeName", "=", sync.Mutex{}))
 		Expect(t,
 			Equal(nil, f),
 			IsError(errTypeNotSupported, err),
@@ -142,6 +143,40 @@ func TestPredicates(t *testing.T) {
 				}
 			})
 		}
+	})
+	t.Run("pointer", func(t *testing.T) {
+		type Entry struct {
+			Ptr *string
+			Int int
+		}
+		obj := &Entry{}
+		f, err := NewPredicate[Entry](store.Where("Ptr", "=", nil))
+		Expect(t,
+			NoError(err),
+			Equal(true, f(obj)),
+		)
+		f, err = NewPredicate[Entry](store.Where("Ptr", "!=", nil))
+		Expect(t,
+			NoError(err),
+			Equal(false, f(obj)),
+		)
+		_, err = NewPredicate[int](store.Where("Ptr", "!=", nil))
+		Expect(t,
+			IsError(errNotAStruct, err),
+		)
+		_, err = NewPredicate[Entry](store.Where("Pointer", "=", nil))
+		Expect(t,
+			IsError(errNoSuchField, err),
+		)
+		_, err = NewPredicate[Entry](store.Where("Int", "!=", nil))
+		Expect(t,
+			IsError(errTypeMismatch, err),
+		)
+		_, err = NewPredicate[Entry](store.Where("Ptr", ">", nil))
+		Expect(t,
+			IsError(errInvalidOperator, err),
+		)
+
 	})
 	t.Run("comparable", func(t *testing.T) {
 		type Entry struct {

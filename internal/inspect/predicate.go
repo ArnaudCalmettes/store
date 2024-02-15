@@ -33,6 +33,9 @@ var (
 )
 
 func predicateFromWhereClause[T any](w *store.WhereClause) (func(*T) bool, error) {
+	if w.Value == nil {
+		return pointerPredicate[T](w.Field, w.Op)
+	}
 	switch t := w.Value.(type) {
 	case string:
 		return orderedPredicate[T](w.Field, w.Op, t)
@@ -61,6 +64,7 @@ func predicateFromWhereClause[T any](w *store.WhereClause) (func(*T) bool, error
 	case time.Time:
 		return timePredicate[T](w.Field, w.Op, t)
 	}
+
 	return nil, fmt.Errorf("%w: %s", errTypeNotSupported, reflect.TypeOf(w.Value).Name())
 }
 
@@ -149,6 +153,40 @@ func comparablePredicate[T any, F comparable](field string, op string, value F) 
 	default:
 		err = fmt.Errorf("%w: %q not supported with type %s",
 			errInvalidOperator, op, reflect.TypeOf(value).Name())
+	}
+	return pred, err
+}
+
+func pointerPredicate[T any](field string, op string) (func(*T) bool, error) {
+	var zero T
+	tp := reflect.TypeOf(zero)
+	if tp.Kind() != reflect.Struct {
+		return nil, fmt.Errorf("%w: %s", errNotAStruct, tp.Name())
+	}
+	f, ok := reflect.TypeOf(zero).FieldByName(field)
+	if !ok {
+		return nil, fmt.Errorf("%w: %s", errNoSuchField, field)
+	}
+	if f.Type.Kind() != reflect.Pointer {
+		return nil, fmt.Errorf("%w: %s is not a pointer", errTypeMismatch, f.Type.Name())
+	}
+	fieldIndex := f.Index
+
+	var pred func(*T) bool
+	var err error
+	switch op {
+	case "=":
+		pred = func(obj *T) bool {
+			return reflect.ValueOf(obj).Elem().FieldByIndex(fieldIndex).IsNil()
+		}
+	case "!=":
+		pred = func(obj *T) bool {
+			return !reflect.ValueOf(obj).Elem().FieldByIndex(fieldIndex).IsNil()
+		}
+	default:
+		err = fmt.Errorf("%w: %q not supported with pointers",
+			errInvalidOperator, op,
+		)
 	}
 	return pred, err
 }
