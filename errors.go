@@ -9,6 +9,7 @@ type ErrorMap struct {
 	ErrEmptyKey      error
 	ErrSerialize     error
 	ErrDeserialize   error
+	ErrInvalidOption error
 	ErrInvalidFilter error
 }
 
@@ -17,6 +18,7 @@ var (
 	ErrEmptyKey      = errors.New("empty key")
 	ErrSerialize     = errors.New("couldn't serialize object")
 	ErrDeserialize   = errors.New("couldn't deserialize data")
+	ErrInvalidOption = errors.New("invalid option")
 	ErrInvalidFilter = errors.New("invalid filter")
 )
 
@@ -32,6 +34,9 @@ func (e *ErrorMap) InitDefaultErrors() {
 	}
 	if e.ErrDeserialize == nil {
 		e.ErrDeserialize = ErrDeserialize
+	}
+	if e.ErrInvalidOption == nil {
+		e.ErrInvalidOption = ErrInvalidOption
 	}
 	if e.ErrInvalidFilter == nil {
 		e.ErrInvalidFilter = ErrInvalidFilter

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"maps"
+	"slices"
 	"sync"
 
 	//lint:ignore ST1001 common definitions
@@ -39,7 +40,10 @@ func (k *keyValueStore[T]) SetErrorMap(errorMap ErrorMap) {
 }
 
 func (k *keyValueStore[T]) List(ctx context.Context, opts ...*Options) ([]*T, error) {
-	opt := options.Merge(opts...)
+	opt, err := options.Merge(opts...)
+	if err != nil {
+		return nil, errors.Join(k.ErrInvalidOption, err)
+	}
 	predicate, err := k.getPredicate(opt)
 	if err != nil {
 		return nil, errors.Join(k.ErrInvalidFilter, err)
@@ -52,7 +56,12 @@ func (k *keyValueStore[T]) List(ctx context.Context, opts ...*Options) ([]*T, er
 			result = append(result, &item)
 		}
 	}
-	return result, nil
+	if opt.OrderBy != nil {
+		if err := k.orderItems(result, opt.OrderBy); err != nil {
+			return nil, err
+		}
+	}
+	return result, err
 }
 
 func (k *keyValueStore[T]) getPredicate(opt *Options) (func(*T) bool, error) {
@@ -65,6 +74,15 @@ func (k *keyValueStore[T]) getPredicate(opt *Options) (func(*T) bool, error) {
 		}
 	}
 	return filterPred, nil
+}
+
+func (k *keyValueStore[T]) orderItems(items []*T, order *OrderBySpec) error {
+	cmp, err := inspect.NewCmp[T](order)
+	if err != nil {
+		return errors.Join(ErrInvalidOption, err)
+	}
+	slices.SortStableFunc(items, cmp)
+	return nil
 }
 
 func (k *keyValueStore[T]) GetOne(ctx context.Context, key string) (*T, error) {

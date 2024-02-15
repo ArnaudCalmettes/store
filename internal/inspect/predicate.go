@@ -6,8 +6,9 @@ import (
 	"reflect"
 	"time"
 
+	"cmp"
+
 	"github.com/ArnaudCalmettes/store"
-	"golang.org/x/exp/constraints"
 )
 
 var (
@@ -107,7 +108,7 @@ var (
 	errInvalidOperator = errors.New("invalid operator")
 )
 
-func orderedPredicate[T any, F constraints.Ordered](field string, op string, value F) (func(*T) bool, error) {
+func orderedPredicate[T any, F cmp.Ordered](field string, op string, value F) (func(*T) bool, error) {
 	f, err := FieldSelector[T, F](field)
 	if err != nil {
 		return nil, err

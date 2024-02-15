@@ -15,9 +15,10 @@ type TestListerInterface[T any] interface {
 }
 
 type Person struct {
-	ID   string
-	Name string
-	Age  int
+	ID       string
+	Name     string
+	Age      int
+	Referent *string
 }
 
 type listerConstructor func(*testing.T) TestListerInterface[Person]
@@ -54,6 +55,65 @@ func TestLister(t *testing.T, newLister listerConstructor) {
 			Equal(
 				[]*Person{
 					{ID: "002", Name: "Willard", Age: 13},
+				},
+				result,
+			),
+		)
+	})
+	t.Run("multiple filters", func(t *testing.T) {
+		result, err := store.List(ctx,
+			Filter(Where("Age", ">", 10)),
+			Filter(Where("Age", "<", 40)),
+			Filter(Where("Age", "!=", 13)),
+		)
+		Expect(t,
+			NoError(err),
+			Equal(
+				[]*Person{
+					{ID: "003", Name: "Jane Smith", Age: 20},
+				},
+				result,
+			),
+		)
+
+	})
+	t.Run("duplicate orderby option", func(t *testing.T) {
+		_, err := store.List(ctx, Order(By("Name")), Order(By("Age").Desc()))
+		Expect(t,
+			IsError(ErrInvalidOption, err),
+		)
+	})
+	t.Run("order by invalid field", func(t *testing.T) {
+		_, err := store.List(ctx, Order(By("Profession")))
+		Expect(t,
+			IsError(ErrInvalidOption, err),
+		)
+	})
+	t.Run("nominal", func(t *testing.T) {
+		result, err := store.List(ctx, Order(By("Age").Desc()))
+		Expect(t,
+			NoError(err),
+			Equal(
+				[]*Person{
+					{ID: "001", Name: "John Doe", Age: 42},
+					{ID: "003", Name: "Jane Smith", Age: 20},
+					{ID: "002", Name: "Willard", Age: 13},
+				},
+				result,
+			),
+		)
+	})
+	t.Run("filter and order", func(t *testing.T) {
+		result, err := store.List(ctx,
+			Filter(Where("Age", ">", 18)),
+			Order(By("Age")),
+		)
+		Expect(t,
+			NoError(err),
+			Equal(
+				[]*Person{
+					{ID: "003", Name: "Jane Smith", Age: 20},
+					{ID: "001", Name: "John Doe", Age: 42},
 				},
 				result,
 			),

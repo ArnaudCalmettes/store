@@ -3,6 +3,7 @@ package serializer
 import (
 	"context"
 	"errors"
+	"slices"
 
 	//lint:ignore ST1001 shared definitions
 	. "github.com/ArnaudCalmettes/store"
@@ -39,7 +40,10 @@ type keyValueStore[T any] struct {
 }
 
 func (k *keyValueStore[T]) List(ctx context.Context, opts ...*Options) ([]*T, error) {
-	opt := options.Merge(opts...)
+	opt, err := options.Merge(opts...)
+	if err != nil {
+		return nil, errors.Join(k.ErrInvalidOption, err)
+	}
 	predicate, err := k.getPredicate(opt)
 	if err != nil {
 		return nil, errors.Join(k.ErrInvalidFilter, err)
@@ -56,6 +60,11 @@ func (k *keyValueStore[T]) List(ctx context.Context, opts ...*Options) ([]*T, er
 			result = append(result, item)
 		}
 	}
+	if opt.OrderBy != nil {
+		if err := k.orderItems(result, opt.OrderBy); err != nil {
+			return nil, err
+		}
+	}
 	return result, nil
 }
 
@@ -69,6 +78,15 @@ func (k *keyValueStore[T]) getPredicate(opt *Options) (func(*T) bool, error) {
 		}
 	}
 	return filterPred, nil
+}
+
+func (k *keyValueStore[T]) orderItems(items []*T, order *OrderBySpec) error {
+	cmp, err := inspect.NewCmp[T](order)
+	if err != nil {
+		return errors.Join(ErrInvalidOption, err)
+	}
+	slices.SortStableFunc(items, cmp)
+	return nil
 }
 
 func (k *keyValueStore[T]) SetErrorMap(errorMap ErrorMap) {

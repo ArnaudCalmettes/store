@@ -1,8 +1,16 @@
 package options
 
-import "github.com/ArnaudCalmettes/store"
+import (
+	"errors"
 
-func Merge(opts ...*store.Options) *store.Options {
+	"github.com/ArnaudCalmettes/store"
+)
+
+var (
+	ErrMultipleOrderBy = errors.New("cannot have multiple OrderBy clauses")
+)
+
+func Merge(opts ...*store.Options) (*store.Options, error) {
 	options := store.Options{}
 	for _, opt := range opts {
 		if opt.Filter != nil {
@@ -14,6 +22,12 @@ func Merge(opts ...*store.Options) *store.Options {
 				options.Filter = store.All(options.Filter, opt.Filter)
 			}
 		}
+		if opt.OrderBy != nil {
+			if options.OrderBy != nil {
+				return nil, ErrMultipleOrderBy
+			}
+			options.OrderBy = opt.OrderBy
+		}
 	}
-	return &options
+	return &options, nil
 }

@@ -1,8 +1,11 @@
 package store
 
 type Options struct {
-	Filter *FilterSpec
+	Filter  *FilterSpec
+	OrderBy *OrderBySpec
 }
+
+// Filtering
 
 func Filter(spec *FilterSpec) *Options {
 	return &Options{Filter: spec}
@@ -30,4 +33,29 @@ func All(filters ...*FilterSpec) *FilterSpec {
 
 func Any(filters ...*FilterSpec) *FilterSpec {
 	return &FilterSpec{Any: filters}
+}
+
+// Ordering
+
+func Order(order *OrderBySpec) *Options {
+	return &Options{OrderBy: order}
+}
+
+func By(field string) *OrderBySpec {
+	return &OrderBySpec{Field: field}
+}
+
+type OrderBySpec struct {
+	Field      string
+	Descending bool
+}
+
+func (o *OrderBySpec) Desc() *OrderBySpec {
+	o.Descending = true
+	return o
+}
+
+func (o *OrderBySpec) Asc() *OrderBySpec {
+	o.Descending = false
+	return o
 }
