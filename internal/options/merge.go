@@ -2,13 +2,18 @@ package options
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/ArnaudCalmettes/store"
 )
 
 var (
-	ErrMultipleOrderBy = errors.New("cannot have multiple OrderBy clauses")
+	ErrDuplicateOption = errors.New("duplicate option")
 )
+
+func duplicateOption(name string) error {
+	return fmt.Errorf("%w: %s", ErrDuplicateOption, name)
+}
 
 func Merge(opts ...*store.Options) (*store.Options, error) {
 	options := store.Options{}
@@ -24,10 +29,31 @@ func Merge(opts ...*store.Options) (*store.Options, error) {
 		}
 		if opt.OrderBy != nil {
 			if options.OrderBy != nil {
-				return nil, ErrMultipleOrderBy
+				return nil, duplicateOption("OrderBy")
 			}
 			options.OrderBy = opt.OrderBy
 		}
+		if opt.Limit != 0 {
+			if options.Limit != 0 {
+				return nil, duplicateOption("Page")
+			}
+			options.Limit = opt.Limit
+		}
+		if opt.Offset != 0 {
+			if options.Offset != 0 {
+				return nil, duplicateOption("Offset")
+			}
+			options.Offset = opt.Offset
+		}
+		if opt.Cursor != "" {
+			if options.Cursor != "" {
+				return nil, duplicateOption("Cursor")
+			}
+			options.Cursor = opt.Cursor
+		}
+	}
+	if options.Offset != 0 && options.Cursor != "" {
+		return nil, duplicateOption("cannot have both Cursor and Offset")
 	}
 	return &options, nil
 }

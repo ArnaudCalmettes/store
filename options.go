@@ -3,6 +3,9 @@ package store
 type Options struct {
 	Filter  *FilterSpec
 	OrderBy *OrderBySpec
+	Limit   int
+	Offset  int
+	Cursor  string
 }
 
 // Filtering
@@ -58,4 +61,18 @@ func (o *OrderBySpec) Desc() *OrderBySpec {
 func (o *OrderBySpec) Asc() *OrderBySpec {
 	o.Descending = false
 	return o
+}
+
+// Paginate
+
+func Limit(n int) *Options {
+	return &Options{Limit: n}
+}
+
+func Offset(n int) *Options {
+	return &Options{Offset: n}
+}
+
+func Cursor(c string) *Options {
+	return &Options{Cursor: c}
 }
