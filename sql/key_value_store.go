@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"slices"
 
 	"github.com/uptrace/bun"
@@ -14,10 +15,12 @@ import (
 	. "github.com/ArnaudCalmettes/store"
 	"github.com/ArnaudCalmettes/store/internal/inspect"
 	"github.com/ArnaudCalmettes/store/internal/libbun"
+	"github.com/ArnaudCalmettes/store/internal/options"
 )
 
 type KeyValueStore[T any] interface {
 	BaseKeyValueStore[T]
+	Lister[T]
 	ErrorMapSetter
 	Resetter
 }
@@ -56,6 +59,39 @@ type keyValueStore[T any] struct {
 func (k *keyValueStore[T]) SetErrorMap(errorMap ErrorMap) {
 	k.ErrorMap = errorMap
 	k.InitDefaultErrors()
+}
+
+func (k *keyValueStore[T]) List(ctx context.Context, opts ...*Options) ([]*T, error) {
+	opt, err := options.Merge(opts...)
+	if err != nil {
+		return nil, errors.Join(k.ErrInvalidOption, err)
+	}
+	var items []*T
+	query := k.db.NewSelect().Model(&items)
+	if opt.Filter != nil {
+		qb, err := libbun.BuilderForFilter(opt.Filter, k.spec)
+		if err != nil {
+			return nil, errors.Join(k.ErrInvalidFilter, err)
+		}
+		query.ApplyQueryBuilder(qb)
+	}
+	if order := opt.OrderBy; order != nil {
+		column, ok := k.spec.ColumnNames[order.Field]
+		if !ok {
+			return nil, fmt.Errorf("%w: no such column: %s",
+				k.ErrInvalidOption, order.Field,
+			)
+		}
+		if order.Descending {
+			column += " DESC"
+		}
+		query.Order(column)
+	}
+	if opt.Limit != 0 {
+		query.Limit(opt.Limit).Offset(opt.Offset)
+	}
+	err = query.Scan(ctx)
+	return items, err
 }
 
 func (k *keyValueStore[T]) GetOne(ctx context.Context, key string) (*T, error) {

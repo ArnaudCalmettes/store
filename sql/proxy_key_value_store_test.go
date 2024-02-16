@@ -18,21 +18,21 @@ import (
 	"github.com/uptrace/bun/driver/sqliteshim"
 )
 
-type Proxy struct {
+type EntryProxy struct {
 	bun.BaseModel `bun:"table:entries,alias:e"`
 
 	ID string `bun:",pk"`
 	Entry
 }
 
-func toProxy(e *Entry) *Proxy {
+func toEntryProxy(e *Entry) *EntryProxy {
 	if e == nil {
 		return nil
 	}
-	return &Proxy{Entry: *e}
+	return &EntryProxy{Entry: *e}
 }
 
-func fromProxy(p *Proxy) *Entry {
+func fromEntryProxy(p *EntryProxy) *Entry {
 	if p == nil {
 		return nil
 	}
@@ -42,11 +42,46 @@ func fromProxy(p *Proxy) *Entry {
 func TestSQLiteKeyValueStore(t *testing.T) {
 	newStore := func(t *testing.T) BaseKeyValueStore[Entry] {
 		db := newSQLite(t)
-		err := db.ResetModel(context.Background(), (*Proxy)(nil))
-		Require(t, NoError(err))
-		return NewKeyValueStoreWithProxy[Entry, Proxy](db, toProxy, fromProxy)
+		err := db.ResetModel(context.Background(), (*EntryProxy)(nil))
+		Require(t,
+			NoError(err),
+		)
+		return NewKeyValueStoreWithProxy[Entry, EntryProxy](db, toEntryProxy, fromEntryProxy)
 	}
 	TestBaseKeyValueStore(t, newStore)
+}
+
+type PersonProxy struct {
+	bun.BaseModel `bun:"table:persons,alias:p"`
+
+	ID       string `bun:",pk"`
+	Name     string
+	Age      int
+	Referent *string
+}
+
+func toPersonProxy(p *Person) *PersonProxy {
+	return &PersonProxy{
+		ID: p.ID, Name: p.Name, Age: p.Age, Referent: p.Referent,
+	}
+}
+
+func fromPersonProxy(p *PersonProxy) *Person {
+	return &Person{
+		ID: p.ID, Name: p.Name, Age: p.Age, Referent: p.Referent,
+	}
+}
+
+func TestSQLiteProxyKeyValueLister(t *testing.T) {
+	newStore := func(t *testing.T) TestListerInterface[Person] {
+		db := newSQLite(t)
+		err := db.ResetModel(context.Background(), (*PersonProxy)(nil))
+		Require(t,
+			NoError(err),
+		)
+		return NewKeyValueStoreWithProxy(db, toPersonProxy, fromPersonProxy)
+	}
+	TestLister(t, newStore)
 }
 
 func TestPGKeyValueStore(t *testing.T) {
@@ -58,9 +93,9 @@ func TestPGKeyValueStore(t *testing.T) {
 
 	newStore := func(t *testing.T) BaseKeyValueStore[Entry] {
 		db := newPostgres(t, pg)
-		err := db.ResetModel(context.Background(), (*Proxy)(nil))
+		err := db.ResetModel(context.Background(), (*EntryProxy)(nil))
 		Require(t, NoError(err))
-		return NewKeyValueStoreWithProxy[Entry, Proxy](db, toProxy, fromProxy)
+		return NewKeyValueStoreWithProxy(db, toEntryProxy, fromEntryProxy)
 	}
 	TestBaseKeyValueStore(t, newStore)
 }

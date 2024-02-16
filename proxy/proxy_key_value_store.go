@@ -9,6 +9,7 @@ import (
 
 type KeyValueStore[T any] interface {
 	BaseKeyValueStore[T]
+	Lister[T]
 	ErrorMapSetter
 	Resetter
 }
@@ -29,6 +30,15 @@ type keyValueStore[T, P any] struct {
 	inner     KeyValueStore[P]
 	toProxy   func(*T) *P
 	fromProxy func(*P) *T
+}
+
+func (k *keyValueStore[T, P]) List(ctx context.Context, opts ...*Options) ([]*T, error) {
+	proxies, err := k.inner.List(ctx, opts...)
+	items := make([]*T, len(proxies))
+	for i, p := range proxies {
+		items[i] = k.fromProxy(p)
+	}
+	return items, err
 }
 
 func (k *keyValueStore[T, P]) Reset(ctx context.Context) error {

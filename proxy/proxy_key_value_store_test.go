@@ -11,18 +11,18 @@ import (
 	. "github.com/ArnaudCalmettes/store/test/helpers"
 )
 
-type Proxy struct {
+type EntryProxy struct {
 	MyFloat  float64
 	MyInt    int
 	MyBool   bool
 	MyString string
 }
 
-func toProxy(e *Entry) *Proxy {
+func toProxy(e *Entry) *EntryProxy {
 	if e == nil {
 		return nil
 	}
-	return &Proxy{
+	return &EntryProxy{
 		MyFloat:  e.Float,
 		MyInt:    e.Int,
 		MyBool:   e.Bool,
@@ -30,7 +30,7 @@ func toProxy(e *Entry) *Proxy {
 	}
 }
 
-func fromProxy(p *Proxy) *Entry {
+func fromProxy(p *EntryProxy) *Entry {
 	if p == nil {
 		return nil
 	}
@@ -44,8 +44,8 @@ func fromProxy(p *Proxy) *Entry {
 
 func TestProxyKeyValueStore(t *testing.T) {
 	newStore := func(*testing.T) BaseKeyValueStore[Entry] {
-		return NewKeyValueStoreWithProxy[Entry, Proxy](
-			memory.NewKeyValueStore[Proxy](),
+		return NewKeyValueStoreWithProxy[Entry, EntryProxy](
+			memory.NewKeyValueStore[EntryProxy](),
 			toProxy,
 			fromProxy,
 		)
@@ -53,10 +53,31 @@ func TestProxyKeyValueStore(t *testing.T) {
 	TestBaseKeyValueStore(t, newStore)
 }
 
+func TestProxyLister(t *testing.T) {
+	type PersonProxy struct {
+		Person
+		Address string
+	}
+	fromProxy := func(p *PersonProxy) *Person {
+		return &p.Person
+	}
+	toProxy := func(p *Person) *PersonProxy {
+		return &PersonProxy{Person: *p}
+	}
+	newStore := func(*testing.T) TestListerInterface[Person] {
+		return NewKeyValueStoreWithProxy[Person, PersonProxy](
+			memory.NewKeyValueStore[PersonProxy](),
+			toProxy,
+			fromProxy,
+		)
+	}
+	TestLister(t, newStore)
+}
+
 func TestKeyValueStoreCustomErrors(t *testing.T) {
 	errTest := errors.New("test")
-	store := NewKeyValueStoreWithProxy[Entry, Proxy](
-		memory.NewKeyValueStore[Proxy](),
+	store := NewKeyValueStoreWithProxy[Entry, EntryProxy](
+		memory.NewKeyValueStore[EntryProxy](),
 		toProxy,
 		fromProxy,
 	)
@@ -71,8 +92,8 @@ func TestKeyValueStoreCustomErrors(t *testing.T) {
 }
 
 func TestKeyValueStoreReset(t *testing.T) {
-	store := NewKeyValueStoreWithProxy[Entry, Proxy](
-		memory.NewKeyValueStore[Proxy](),
+	store := NewKeyValueStoreWithProxy[Entry, EntryProxy](
+		memory.NewKeyValueStore[EntryProxy](),
 		toProxy,
 		fromProxy,
 	)
