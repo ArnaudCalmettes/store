@@ -5,7 +5,6 @@ type Options struct {
 	OrderBy *OrderBySpec
 	Limit   int
 	Offset  int
-	Cursor  string
 }
 
 // Filtering
@@ -63,7 +62,11 @@ func (o *OrderBySpec) Asc() *OrderBySpec {
 	return o
 }
 
-// Paginate
+// Pagination
+
+func Paginate(limit, offset int) *Options {
+	return &Options{Limit: limit, Offset: offset}
+}
 
 func Limit(n int) *Options {
 	return &Options{Limit: n}
@@ -71,8 +74,4 @@ func Limit(n int) *Options {
 
 func Offset(n int) *Options {
 	return &Options{Offset: n}
-}
-
-func Cursor(c string) *Options {
-	return &Options{Cursor: c}
 }

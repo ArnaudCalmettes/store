@@ -48,6 +48,7 @@ func (k *keyValueStore[T]) List(ctx context.Context, opts ...*Options) ([]*T, er
 	if err != nil {
 		return nil, errors.Join(k.ErrInvalidFilter, err)
 	}
+
 	// FIXME: A better implementation would use some form of incremental scan.
 	// TODO: Rework when a scanning interface is implemented.
 	all, err := k.GetAll(ctx)
@@ -60,12 +61,11 @@ func (k *keyValueStore[T]) List(ctx context.Context, opts ...*Options) ([]*T, er
 			result = append(result, item)
 		}
 	}
-	if opt.OrderBy != nil {
-		if err := k.orderItems(result, opt.OrderBy); err != nil {
-			return nil, err
-		}
+
+	if err := k.order(result, opt.OrderBy); err != nil {
+		return nil, err
 	}
-	return result, nil
+	return k.paginate(result, opt), nil
 }
 
 func (k *keyValueStore[T]) getPredicate(opt *Options) (func(*T) bool, error) {
@@ -80,13 +80,28 @@ func (k *keyValueStore[T]) getPredicate(opt *Options) (func(*T) bool, error) {
 	return filterPred, nil
 }
 
-func (k *keyValueStore[T]) orderItems(items []*T, order *OrderBySpec) error {
+func (k *keyValueStore[T]) order(items []*T, order *OrderBySpec) error {
+	if order == nil {
+		return nil
+	}
 	cmp, err := inspect.NewCmp[T](order)
 	if err != nil {
 		return errors.Join(ErrInvalidOption, err)
 	}
 	slices.SortStableFunc(items, cmp)
 	return nil
+}
+
+func (k *keyValueStore[T]) paginate(result []*T, opt *Options) []*T {
+	if opt.Offset > len(result) {
+		result = result[:0]
+	} else {
+		result = result[opt.Offset:]
+	}
+	if opt.Limit > 0 && opt.Limit < len(result) {
+		result = result[:opt.Limit]
+	}
+	return result
 }
 
 func (k *keyValueStore[T]) SetErrorMap(errorMap ErrorMap) {

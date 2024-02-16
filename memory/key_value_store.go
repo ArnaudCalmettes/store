@@ -48,20 +48,20 @@ func (k *keyValueStore[T]) List(ctx context.Context, opts ...*Options) ([]*T, er
 	if err != nil {
 		return nil, errors.Join(k.ErrInvalidFilter, err)
 	}
+
 	k.mtx.RLock()
-	defer k.mtx.RUnlock()
 	result := make([]*T, 0, len(k.items))
 	for _, item := range k.items {
 		if predicate(&item) {
 			result = append(result, &item)
 		}
 	}
-	if opt.OrderBy != nil {
-		if err := k.orderItems(result, opt.OrderBy); err != nil {
-			return nil, err
-		}
+	k.mtx.RUnlock()
+
+	if err := k.order(result, opt.OrderBy); err != nil {
+		return nil, err
 	}
-	return result, err
+	return k.paginate(result, opt), nil
 }
 
 func (k *keyValueStore[T]) getPredicate(opt *Options) (func(*T) bool, error) {
@@ -76,13 +76,28 @@ func (k *keyValueStore[T]) getPredicate(opt *Options) (func(*T) bool, error) {
 	return filterPred, nil
 }
 
-func (k *keyValueStore[T]) orderItems(items []*T, order *OrderBySpec) error {
+func (k *keyValueStore[T]) order(items []*T, order *OrderBySpec) error {
+	if order == nil {
+		return nil
+	}
 	cmp, err := inspect.NewCmp[T](order)
 	if err != nil {
 		return errors.Join(ErrInvalidOption, err)
 	}
 	slices.SortStableFunc(items, cmp)
 	return nil
+}
+
+func (k *keyValueStore[T]) paginate(result []*T, opt *Options) []*T {
+	if opt.Offset > len(result) {
+		result = result[:0]
+	} else {
+		result = result[opt.Offset:]
+	}
+	if opt.Limit > 0 && opt.Limit < len(result) {
+		result = result[:opt.Limit]
+	}
+	return result
 }
 
 func (k *keyValueStore[T]) GetOne(ctx context.Context, key string) (*T, error) {

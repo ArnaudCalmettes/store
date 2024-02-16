@@ -45,15 +45,6 @@ func Merge(opts ...*store.Options) (*store.Options, error) {
 			}
 			options.Offset = opt.Offset
 		}
-		if opt.Cursor != "" {
-			if options.Cursor != "" {
-				return nil, duplicateOption("Cursor")
-			}
-			options.Cursor = opt.Cursor
-		}
-	}
-	if options.Offset != 0 && options.Cursor != "" {
-		return nil, duplicateOption("cannot have both Cursor and Offset")
 	}
 	return &options, nil
 }

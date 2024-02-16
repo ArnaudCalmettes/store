@@ -43,7 +43,7 @@ func TestLister(t *testing.T, newLister listerConstructor) {
 		)
 	})
 	t.Run("invalid filter", func(t *testing.T) {
-		_, err := store.List(ctx, Filter(Where("Name", "!=", 42)))
+		_, err := store.List(ctx, Filter(Where("BankAccount", "!=", 42)))
 		Expect(t,
 			IsError(ErrInvalidFilter, err),
 		)
@@ -117,6 +117,25 @@ func TestLister(t *testing.T, newLister listerConstructor) {
 				},
 				result,
 			),
+		)
+	})
+	t.Run("paginate", func(t *testing.T) {
+		result, err := store.List(ctx, Order(By("Age")), Limit(2), Offset(1))
+		Expect(t,
+			NoError(err),
+			Equal(
+				[]*Person{
+					{ID: "003", Name: "Jane Smith", Age: 20},
+					{ID: "001", Name: "John Doe", Age: 42},
+				},
+				result,
+			),
+		)
+
+		result, err = store.List(ctx, Limit(100), Offset(50))
+		Expect(t,
+			NoError(err),
+			IsEmptySlice(result),
 		)
 	})
 }

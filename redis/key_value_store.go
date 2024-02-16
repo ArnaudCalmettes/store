@@ -15,5 +15,5 @@ type KeyValueStore[T any] interface {
 }
 
 func NewKeyValueStore[T any](rdb redis.UniversalClient, namespace string, s Serializer[T]) KeyValueStore[T] {
-	return serializer.NewKeyValueStore[T](s, NewKeyValueMap(rdb, namespace))
+	return serializer.NewKeyValueStore(s, NewKeyValueMap(rdb, namespace))
 }
