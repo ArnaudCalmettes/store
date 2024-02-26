@@ -119,6 +119,24 @@ func TestPGKeyValueStore(t *testing.T) {
 	TestBaseKeyValueStore(t, newStore)
 }
 
+func TestPGProxyKeyValueLister(t *testing.T) {
+	pg, err := pgtest.Start()
+	Require(t,
+		NoError(err),
+	)
+
+	t.Cleanup(func() { pg.Stop() })
+	newStore := func(t *testing.T) TestListerInterface[Person] {
+		db := newPostgres(t, pg)
+		err := db.ResetModel(context.Background(), (*PersonProxy)(nil))
+		Require(t,
+			NoError(err),
+		)
+		return NewKeyValueStoreWithProxy(db, toPersonProxy, fromPersonProxy)
+	}
+	TestLister(t, newStore)
+}
+
 func newSQLite(t *testing.T) *bun.DB {
 	t.Helper()
 	sqldb, err := sql.Open(sqliteshim.ShimName, "file::memory:?cache=shared")
