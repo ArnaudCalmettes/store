@@ -23,6 +23,12 @@ import (
 	"context"
 )
 
+type KeyValueMap interface {
+	BaseKeyValueMap
+	ErrorMapSetter
+	Resetter
+}
+
 type BaseKeyValueMap interface {
 	GetOne(ctx context.Context, key string) (string, error)
 	GetMany(ctx context.Context, keys []string) (map[string]string, error)

@@ -21,6 +21,13 @@ package store
 
 import "context"
 
+type KeyValue[T any] interface {
+	BaseKeyValueStore[T]
+	Lister[T]
+	ErrorMapSetter
+	Resetter
+}
+
 type BaseKeyValueStore[T any] interface {
 	GetOne(ctx context.Context, key string) (*T, error)
 	GetMany(ctx context.Context, keys []string) (map[string]*T, error)
