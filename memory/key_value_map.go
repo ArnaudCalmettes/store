@@ -28,7 +28,7 @@ import (
 	. "github.com/ArnaudCalmettes/store"
 )
 
-type KeyValueMap interface {
+type KVMap interface {
 	BaseKeyValueMap
 	Resetter
 	ErrorMapSetter
@@ -102,7 +102,7 @@ func (k *keyValueMap) GetAll(ctx context.Context) (map[string]string, error) {
 	return items, nil
 }
 
-func (k *keyValueMap) UpdateOne(ctx context.Context, key string, update UpdateFunc[string]) error {
+func (k *keyValueMap) UpdateOne(ctx context.Context, key string, update func(string, *string) (*string, error)) error {
 	k.mtx.Lock()
 	defer k.mtx.Unlock()
 	if key == "" {
@@ -124,7 +124,7 @@ func (k *keyValueMap) UpdateOne(ctx context.Context, key string, update UpdateFu
 	return nil
 }
 
-func (k *keyValueMap) UpdateMany(ctx context.Context, keys []string, update UpdateFunc[string]) error {
+func (k *keyValueMap) UpdateMany(ctx context.Context, keys []string, update func(string, *string) (*string, error)) error {
 	k.mtx.Lock()
 	defer k.mtx.Unlock()
 

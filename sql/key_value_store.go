@@ -183,14 +183,14 @@ func (k *keyValueStore[T]) setRequest(ctx context.Context, model any) error {
 	return err
 }
 
-func (k *keyValueStore[T]) UpdateOne(ctx context.Context, key string, update UpdateFunc[T]) error {
+func (k *keyValueStore[T]) UpdateOne(ctx context.Context, key string, update func(string, *T) (*T, error)) error {
 	if key == "" {
 		return k.ErrEmptyKey
 	}
 	return k.UpdateMany(ctx, []string{key}, update)
 }
 
-func (k *keyValueStore[T]) UpdateMany(ctx context.Context, keys []string, update UpdateFunc[T]) error {
+func (k *keyValueStore[T]) UpdateMany(ctx context.Context, keys []string, update func(string, *T) (*T, error)) error {
 	if len(keys) == 0 {
 		return nil
 	}

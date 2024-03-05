@@ -34,8 +34,8 @@ type BaseKeyValueStore[T any] interface {
 	GetAll(ctx context.Context) (map[string]*T, error)
 	SetOne(ctx context.Context, key string, value *T) error
 	SetMany(ctx context.Context, items map[string]*T) error
-	UpdateOne(ctx context.Context, key string, update UpdateFunc[T]) error
-	UpdateMany(ctx context.Context, keys []string, update UpdateFunc[T]) error
+	UpdateOne(ctx context.Context, key string, update func(string, *T) (*T, error)) error
+	UpdateMany(ctx context.Context, keys []string, update func(string, *T) (*T, error)) error
 	Delete(ctx context.Context, keys ...string) error
 }
 

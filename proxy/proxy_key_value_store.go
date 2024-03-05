@@ -103,15 +103,15 @@ func (k *keyValueStore[T, P]) SetMany(ctx context.Context, items map[string]*T) 
 	return k.inner.SetMany(ctx, proxies)
 }
 
-func (k *keyValueStore[T, P]) UpdateOne(ctx context.Context, key string, f UpdateFunc[T]) error {
+func (k *keyValueStore[T, P]) UpdateOne(ctx context.Context, key string, f func(string, *T) (*T, error)) error {
 	return k.inner.UpdateOne(ctx, key, k.updateFunc(f))
 }
 
-func (k *keyValueStore[T, P]) UpdateMany(ctx context.Context, keys []string, f UpdateFunc[T]) error {
+func (k *keyValueStore[T, P]) UpdateMany(ctx context.Context, keys []string, f func(string, *T) (*T, error)) error {
 	return k.inner.UpdateMany(ctx, keys, k.updateFunc(f))
 }
 
-func (k *keyValueStore[T, P]) updateFunc(update UpdateFunc[T]) UpdateFunc[P] {
+func (k *keyValueStore[T, P]) updateFunc(update func(string, *T) (*T, error)) func(string, *P) (*P, error) {
 	return func(key string, proxy *P) (*P, error) {
 		item := k.fromProxy(proxy)
 		newItem, err := update(key, item)

@@ -33,5 +33,3 @@ type Serializer[T any] interface {
 	Serialize(*T) (string, error)
 	Deserialize(string) (*T, error)
 }
-
-type UpdateFunc[T any] func(key string, value *T) (*T, error)

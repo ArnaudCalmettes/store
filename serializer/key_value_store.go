@@ -176,11 +176,11 @@ func (k *keyValueStore[T]) SetMany(ctx context.Context, items map[string]*T) err
 	return k.storage.SetMany(ctx, serializedItems)
 }
 
-func (k *keyValueStore[T]) UpdateOne(ctx context.Context, key string, update UpdateFunc[T]) error {
+func (k *keyValueStore[T]) UpdateOne(ctx context.Context, key string, update func(string, *T) (*T, error)) error {
 	return k.storage.UpdateOne(ctx, key, k.updateCallback(update))
 }
 
-func (k *keyValueStore[T]) UpdateMany(ctx context.Context, keys []string, update UpdateFunc[T]) error {
+func (k *keyValueStore[T]) UpdateMany(ctx context.Context, keys []string, update func(string, *T) (*T, error)) error {
 	return k.storage.UpdateMany(ctx, keys, k.updateCallback(update))
 }
 
@@ -216,7 +216,7 @@ func (k *keyValueStore[T]) deserializeMap(in map[string]string) (map[string]*T, 
 	return out, nil
 }
 
-func (k *keyValueStore[T]) updateCallback(in UpdateFunc[T]) UpdateFunc[string] {
+func (k *keyValueStore[T]) updateCallback(in func(string, *T) (*T, error)) func(string, *string) (*string, error) {
 	return func(id string, data *string) (*string, error) {
 		var value *T
 		var err error

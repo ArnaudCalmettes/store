@@ -28,7 +28,7 @@ import (
 	"github.com/go-redis/redis/v8"
 )
 
-type KeyValueMap interface {
+type KVMap interface {
 	BaseKeyValueMap
 	Resetter
 	ErrorMapSetter
@@ -97,7 +97,7 @@ func (k *keyValueMap) GetAll(ctx context.Context) (map[string]string, error) {
 	return k.rdb.HGetAll(ctx, k.namespace).Result()
 }
 
-func (k *keyValueMap) UpdateOne(ctx context.Context, key string, update UpdateFunc[string]) error {
+func (k *keyValueMap) UpdateOne(ctx context.Context, key string, update func(string, *string) (*string, error)) error {
 	if key == "" {
 		return k.ErrEmptyKey
 	}
@@ -130,7 +130,7 @@ func (k *keyValueMap) UpdateOne(ctx context.Context, key string, update UpdateFu
 	return err
 }
 
-func (k *keyValueMap) UpdateMany(ctx context.Context, keys []string, update UpdateFunc[string]) error {
+func (k *keyValueMap) UpdateMany(ctx context.Context, keys []string, update func(string, *string) (*string, error)) error {
 	if len(keys) == 0 {
 		return nil
 	}

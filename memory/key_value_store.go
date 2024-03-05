@@ -179,7 +179,7 @@ func (k *keyValueStore[T]) SetMany(ctx context.Context, items map[string]*T) err
 	return nil
 }
 
-func (k *keyValueStore[T]) UpdateOne(ctx context.Context, key string, update UpdateFunc[T]) error {
+func (k *keyValueStore[T]) UpdateOne(ctx context.Context, key string, update func(string, *T) (*T, error)) error {
 	k.mtx.Lock()
 	defer k.mtx.Unlock()
 	if key == "" {
@@ -201,7 +201,7 @@ func (k *keyValueStore[T]) UpdateOne(ctx context.Context, key string, update Upd
 	return nil
 }
 
-func (k *keyValueStore[T]) UpdateMany(ctx context.Context, keys []string, update UpdateFunc[T]) error {
+func (k *keyValueStore[T]) UpdateMany(ctx context.Context, keys []string, update func(string, *T) (*T, error)) error {
 	k.mtx.Lock()
 	defer k.mtx.Unlock()
 
