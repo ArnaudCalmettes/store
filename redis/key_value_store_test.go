@@ -52,6 +52,6 @@ func spawnNewKeyValueStore[T any](t *testing.T) func(*testing.T) KeyValueStore[T
 		t.Cleanup(func() {
 			rdb.Del(context.Background(), namespace).Err()
 		})
-		return NewKeyValueStore[T](rdb, namespace, serializer.NewJSON[T]())
+		return NewKeyValue[T](rdb, namespace, serializer.NewJSON[T]())
 	}
 }

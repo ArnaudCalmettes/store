@@ -34,7 +34,7 @@ func TestSQLNewKeyValueStore(t *testing.T) {
 	t.Run("not a struct", func(t *testing.T) {
 		Expect(t,
 			ShouldPanic(func() {
-				NewKeyValueStore[int](db)
+				NewKeyValue[int](db)
 			}),
 		)
 	})
@@ -44,7 +44,7 @@ func TestSQLNewKeyValueStore(t *testing.T) {
 		}
 		Expect(t,
 			ShouldPanic(func() {
-				NewKeyValueStore[Model](db)
+				NewKeyValue[Model](db)
 			}),
 		)
 	})
@@ -57,7 +57,7 @@ func TestSQLNewKeyValueStore(t *testing.T) {
 		}
 		Expect(t,
 			ShouldPanic(func() {
-				NewKeyValueStore[Model](db)
+				NewKeyValue[Model](db)
 			}),
 		)
 	})
@@ -70,7 +70,7 @@ func TestSQLNewKeyValueStore(t *testing.T) {
 		}
 		Expect(t,
 			DoesNotPanic(func() {
-				NewKeyValueStore[Model](db)
+				NewKeyValue[Model](db)
 			}),
 		)
 	})
@@ -92,7 +92,7 @@ func TestKeyValueStoreCustomErrors(t *testing.T) {
 	db.ResetModel(ctx, (*Item)(nil))
 
 	errTest := errors.New("test")
-	store := NewKeyValueStore[Item](db)
+	store := NewKeyValue[Item](db)
 	store.SetErrorMap(ErrorMap{
 		ErrNotFound: errTest,
 	})
@@ -109,7 +109,7 @@ func TestSQLKeyValueStoreReset(t *testing.T) {
 	db := newSQLite(t)
 	db.ResetModel(ctx, (*Item)(nil))
 
-	store := NewKeyValueStore[Item](db)
+	store := NewKeyValue[Item](db)
 
 	err := store.SetMany(context.Background(), map[string]*Item{
 		"one":   {Name: "one"},

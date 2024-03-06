@@ -32,7 +32,7 @@ import (
 
 func TestSerializerKeyValueStore(t *testing.T) {
 	newStore := func(*testing.T) BaseKeyValueStore[Entry] {
-		return NewKeyValueStore(
+		return NewKeyValue(
 			NewJSON[Entry](),
 			memory.NewKeyValueMap(),
 		)
@@ -42,7 +42,7 @@ func TestSerializerKeyValueStore(t *testing.T) {
 
 func TestSerializerKeyValueStoreLister(t *testing.T) {
 	newStore := func(*testing.T) TestListerInterface[Person] {
-		return NewKeyValueStore(
+		return NewKeyValue(
 			NewJSON[Person](),
 			memory.NewKeyValueMap(),
 		)
@@ -52,7 +52,7 @@ func TestSerializerKeyValueStoreLister(t *testing.T) {
 
 func TestKeyValueStoreCustomErrors(t *testing.T) {
 	errTest := errors.New("test")
-	store := NewKeyValueStore(NewJSON[Entry](), memory.NewKeyValueMap())
+	store := NewKeyValue(NewJSON[Entry](), memory.NewKeyValueMap())
 	store.SetErrorMap(ErrorMap{
 		ErrNotFound: errTest,
 	})
@@ -66,7 +66,7 @@ func TestSerializationErrors(t *testing.T) {
 	ctx, cancel := NewTestContext()
 	defer cancel()
 	mem := memory.NewKeyValueMap()
-	store := NewKeyValueStore(NewJSON[Entry](), mem)
+	store := NewKeyValue(NewJSON[Entry](), mem)
 	mem.SetOne(ctx, "malformed", "}")
 
 	t.Run("GetAll", func(t *testing.T) {
@@ -122,7 +122,7 @@ func TestSerializationErrors(t *testing.T) {
 }
 
 func TestKeyValueStoreReset(t *testing.T) {
-	store := NewKeyValueStore(NewJSON[Entry](), memory.NewKeyValueMap())
+	store := NewKeyValue(NewJSON[Entry](), memory.NewKeyValueMap())
 	err := store.SetMany(context.Background(), map[string]*Entry{
 		"one":   {String: "one"},
 		"three": {String: "three"},

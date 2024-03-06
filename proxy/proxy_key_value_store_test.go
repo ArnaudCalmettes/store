@@ -63,8 +63,8 @@ func fromProxy(p *EntryProxy) *Entry {
 
 func TestProxyKeyValueStore(t *testing.T) {
 	newStore := func(*testing.T) BaseKeyValueStore[Entry] {
-		return NewKeyValueStoreWithProxy[Entry, EntryProxy](
-			memory.NewKeyValueStore[EntryProxy](),
+		return NewKeyValueWithProxy[Entry, EntryProxy](
+			memory.NewKeyValue[EntryProxy](),
 			toProxy,
 			fromProxy,
 		)
@@ -84,8 +84,8 @@ func TestProxyLister(t *testing.T) {
 		return &PersonProxy{Person: *p}
 	}
 	newStore := func(*testing.T) TestListerInterface[Person] {
-		return NewKeyValueStoreWithProxy[Person, PersonProxy](
-			memory.NewKeyValueStore[PersonProxy](),
+		return NewKeyValueWithProxy[Person, PersonProxy](
+			memory.NewKeyValue[PersonProxy](),
 			toProxy,
 			fromProxy,
 		)
@@ -95,8 +95,8 @@ func TestProxyLister(t *testing.T) {
 
 func TestKeyValueStoreCustomErrors(t *testing.T) {
 	errTest := errors.New("test")
-	store := NewKeyValueStoreWithProxy[Entry, EntryProxy](
-		memory.NewKeyValueStore[EntryProxy](),
+	store := NewKeyValueWithProxy[Entry, EntryProxy](
+		memory.NewKeyValue[EntryProxy](),
 		toProxy,
 		fromProxy,
 	)
@@ -111,8 +111,8 @@ func TestKeyValueStoreCustomErrors(t *testing.T) {
 }
 
 func TestKeyValueStoreReset(t *testing.T) {
-	store := NewKeyValueStoreWithProxy[Entry, EntryProxy](
-		memory.NewKeyValueStore[EntryProxy](),
+	store := NewKeyValueWithProxy[Entry, EntryProxy](
+		memory.NewKeyValue[EntryProxy](),
 		toProxy,
 		fromProxy,
 	)

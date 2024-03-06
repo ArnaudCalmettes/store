@@ -39,7 +39,7 @@ type KeyValueStore[T any] interface {
 	ErrorMapSetter
 }
 
-func NewKeyValueStore[T any]() KeyValueStore[T] {
+func NewKeyValue[T any]() KeyValueStore[T] {
 	k := &keyValueStore[T]{
 		items: make(map[string]T),
 	}

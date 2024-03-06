@@ -37,7 +37,7 @@ type KeyValueStore[T any] interface {
 	ErrorMapSetter
 }
 
-func NewKeyValueStore[T any](serializer Serializer[T], storage Map) KeyValueStore[T] {
+func NewKeyValue[T any](serializer Serializer[T], storage Map) KeyValueStore[T] {
 	k := &keyValueStore[T]{
 		storage:    storage,
 		Serializer: serializer,

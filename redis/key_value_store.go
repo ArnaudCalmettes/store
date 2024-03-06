@@ -33,6 +33,6 @@ type KeyValueStore[T any] interface {
 	Resetter
 }
 
-func NewKeyValueStore[T any](rdb redis.UniversalClient, namespace string, s Serializer[T]) KeyValueStore[T] {
-	return serializer.NewKeyValueStore(s, NewKeyValueMap(rdb, namespace))
+func NewKeyValue[T any](rdb redis.UniversalClient, namespace string, s Serializer[T]) KeyValueStore[T] {
+	return serializer.NewKeyValue(s, NewKeyValueMap(rdb, namespace))
 }

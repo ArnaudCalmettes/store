@@ -24,13 +24,13 @@ import (
 	"github.com/uptrace/bun"
 )
 
-func NewKeyValueStoreWithProxy[T, P any](
+func NewKeyValueWithProxy[T, P any](
 	db *bun.DB,
 	toProxy func(*T) *P,
 	fromProxy func(*P) *T,
 ) KeyValueStore[T] {
-	return proxy.NewKeyValueStoreWithProxy[T, P](
-		NewKeyValueStore[P](db),
+	return proxy.NewKeyValueWithProxy[T, P](
+		NewKeyValue[P](db),
 		toProxy,
 		fromProxy,
 	)

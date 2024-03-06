@@ -65,7 +65,7 @@ func TestSQLiteKeyValueStore(t *testing.T) {
 		Require(t,
 			NoError(err),
 		)
-		return NewKeyValueStoreWithProxy[Entry, EntryProxy](db, toEntryProxy, fromEntryProxy)
+		return NewKeyValueWithProxy[Entry, EntryProxy](db, toEntryProxy, fromEntryProxy)
 	}
 	TestBaseKeyValueStore(t, newStore)
 }
@@ -98,7 +98,7 @@ func TestSQLiteProxyKeyValueLister(t *testing.T) {
 		Require(t,
 			NoError(err),
 		)
-		return NewKeyValueStoreWithProxy(db, toPersonProxy, fromPersonProxy)
+		return NewKeyValueWithProxy(db, toPersonProxy, fromPersonProxy)
 	}
 	TestLister(t, newStore)
 }
@@ -114,7 +114,7 @@ func TestPGKeyValueStore(t *testing.T) {
 		db := newPostgres(t, pg)
 		err := db.ResetModel(context.Background(), (*EntryProxy)(nil))
 		Require(t, NoError(err))
-		return NewKeyValueStoreWithProxy(db, toEntryProxy, fromEntryProxy)
+		return NewKeyValueWithProxy(db, toEntryProxy, fromEntryProxy)
 	}
 	TestBaseKeyValueStore(t, newStore)
 }
@@ -132,7 +132,7 @@ func TestPGProxyKeyValueLister(t *testing.T) {
 		Require(t,
 			NoError(err),
 		)
-		return NewKeyValueStoreWithProxy(db, toPersonProxy, fromPersonProxy)
+		return NewKeyValueWithProxy(db, toPersonProxy, fromPersonProxy)
 	}
 	TestLister(t, newStore)
 }

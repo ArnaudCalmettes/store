@@ -39,11 +39,11 @@ type Entry struct {
 
 type baseStoreConstructor = func(*testing.T) BaseKeyValueStore[Entry]
 
-func TestBaseKeyValueStore(t *testing.T, newStore baseStoreConstructor) {
+func TestBaseKeyValueStore(t *testing.T, newKV baseStoreConstructor) {
 	type TestFunc = func(*testing.T, baseStoreConstructor)
 	run := func(t *testing.T, name string, testFunc TestFunc) {
 		t.Run(name, func(t *testing.T) {
-			testFunc(t, newStore)
+			testFunc(t, newKV)
 		})
 	}
 	t.Parallel()
@@ -55,8 +55,8 @@ func TestBaseKeyValueStore(t *testing.T, newStore baseStoreConstructor) {
 	run(t, "Delete", testBaseKeyValueStoreDelete)
 }
 
-func testBaseKeyValueStoreGetSetOne(t *testing.T, newStore baseStoreConstructor) {
-	store := newStore(t)
+func testBaseKeyValueStoreGetSetOne(t *testing.T, newKV baseStoreConstructor) {
+	store := newKV(t)
 	ctx, cancel := NewTestContext()
 	defer cancel()
 	fixture := &Entry{
@@ -120,8 +120,8 @@ func testBaseKeyValueStoreGetSetOne(t *testing.T, newStore baseStoreConstructor)
 	})
 }
 
-func testBaseKeyValueStoreGetSetMany(t *testing.T, newStore baseStoreConstructor) {
-	store := newStore(t)
+func testBaseKeyValueStoreGetSetMany(t *testing.T, newKV baseStoreConstructor) {
+	store := newKV(t)
 	ctx, cancel := NewTestContext()
 	defer cancel()
 
@@ -198,8 +198,8 @@ func testBaseKeyValueStoreGetSetMany(t *testing.T, newStore baseStoreConstructor
 	})
 }
 
-func testBaseKeyValueStoreGetAll(t *testing.T, newStore baseStoreConstructor) {
-	store := newStore(t)
+func testBaseKeyValueStoreGetAll(t *testing.T, newKV baseStoreConstructor) {
+	store := newKV(t)
 	ctx, cancel := NewTestContext()
 	defer cancel()
 
@@ -229,8 +229,8 @@ func testBaseKeyValueStoreGetAll(t *testing.T, newStore baseStoreConstructor) {
 	})
 }
 
-func testBaseKeyValueStoreUpdateOne(t *testing.T, newStore baseStoreConstructor) {
-	store := newStore(t)
+func testBaseKeyValueStoreUpdateOne(t *testing.T, newKV baseStoreConstructor) {
+	store := newKV(t)
 	ctx, cancel := NewTestContext()
 	defer cancel()
 
@@ -305,8 +305,8 @@ func testBaseKeyValueStoreUpdateOne(t *testing.T, newStore baseStoreConstructor)
 	})
 }
 
-func testBaseKeyValueStoreUpdateMany(t *testing.T, newStore baseStoreConstructor) {
-	store := newStore(t)
+func testBaseKeyValueStoreUpdateMany(t *testing.T, newKV baseStoreConstructor) {
+	store := newKV(t)
 	ctx, cancel := NewTestContext()
 	defer cancel()
 
@@ -418,8 +418,8 @@ func testBaseKeyValueStoreUpdateMany(t *testing.T, newStore baseStoreConstructor
 	})
 }
 
-func testBaseKeyValueStoreDelete(t *testing.T, newStore baseStoreConstructor) {
-	store := newStore(t)
+func testBaseKeyValueStoreDelete(t *testing.T, newKV baseStoreConstructor) {
+	store := newKV(t)
 	ctx, cancel := NewTestContext()
 	defer cancel()
 

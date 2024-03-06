@@ -44,7 +44,7 @@ type KeyValueStore[T any] interface {
 	Resetter
 }
 
-func NewKeyValueStore[T any](db *bun.DB) KeyValueStore[T] {
+func NewKeyValue[T any](db *bun.DB) KeyValueStore[T] {
 	k := &keyValueStore[T]{
 		db: db,
 		txOptions: &sql.TxOptions{

@@ -31,14 +31,14 @@ import (
 
 func TestMemoryKeyValueStore(t *testing.T) {
 	newStore := func(*testing.T) BaseKeyValueStore[Entry] {
-		return NewKeyValueStore[Entry]()
+		return NewKeyValue[Entry]()
 	}
 	TestBaseKeyValueStore(t, newStore)
 }
 
 func TestKeyValueStoreCustomErrors(t *testing.T) {
 	errTest := errors.New("test")
-	store := NewKeyValueStore[Entry]()
+	store := NewKeyValue[Entry]()
 	store.SetErrorMap(ErrorMap{
 		ErrNotFound: errTest,
 	})
@@ -49,7 +49,7 @@ func TestKeyValueStoreCustomErrors(t *testing.T) {
 }
 
 func TestKeyValueStoreReset(t *testing.T) {
-	store := NewKeyValueStore[Entry]()
+	store := NewKeyValue[Entry]()
 	err := store.SetMany(context.Background(), map[string]*Entry{
 		"one":   {String: "one"},
 		"three": {String: "three"},
@@ -72,7 +72,7 @@ func TestKeyValueStoreReset(t *testing.T) {
 
 func TestKeyValueStoreLister(t *testing.T) {
 	newStore := func(*testing.T) TestListerInterface[Person] {
-		return NewKeyValueStore[Person]()
+		return NewKeyValue[Person]()
 	}
 	TestLister(t, newStore)
 }

@@ -33,7 +33,7 @@ type KeyValueStore[T any] interface {
 	Resetter
 }
 
-func NewKeyValueStoreWithProxy[T, P any](
+func NewKeyValueWithProxy[T, P any](
 	inner KeyValueStore[P],
 	toProxy func(*T) *P,
 	fromProxy func(*P) *T,
